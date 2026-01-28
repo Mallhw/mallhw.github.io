@@ -1,22 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>My Blogs</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
+  <h1>My Blogs</h1>
   <ul id="blog-list"></ul>
+  <div id="blog-content"></div>
 
   <script>
+    // List all your Markdown files here
     const blogs = [
-      {title: "phone", file: "blogs/phone.md"},
+      {title: "Phone", file: "blogs/phone.md"},
+      // Add more files as needed
     ];
 
-    const ul = document.getElementById('blog-list');
+    const ul = document.getElementById("blog-list");
+    const contentDiv = document.getElementById("blog-content");
+
+    // Create links for each blog
     blogs.forEach(b => {
-      const li = document.createElement('li');
-      const a = document.createElement('a');
-      a.href = b.file;
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.href = "#";
       a.textContent = b.title;
+      a.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const res = await fetch(b.file);
+        const md = await res.text();
+        contentDiv.innerHTML = marked(md);
+      });
       li.appendChild(a);
       ul.appendChild(li);
     });
