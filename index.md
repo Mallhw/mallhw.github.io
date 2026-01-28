@@ -1,7 +1,3 @@
----
-title: Home
----
-
 # Blog Posts
 
 <ul>
