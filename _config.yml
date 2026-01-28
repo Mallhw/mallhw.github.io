@@ -1,4 +1,3 @@
-markdown: kramdown
 collections:
   blogs:
     output: true
