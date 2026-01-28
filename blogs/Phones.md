@@ -1,5 +1,5 @@
 ---
-title: phones
+title: My First Blog
 ---
 
-This is the blog content.
+Actual content here.
