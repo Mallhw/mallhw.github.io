@@ -1,3 +1,5 @@
 collections:
   blogs:
     output: true
+  test:
+    output: true
