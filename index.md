@@ -1,8 +1,3 @@
----
-layout: home
-title: Home
----
-
 # Blog Posts
 
 <ul>
