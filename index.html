@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Blogs</title>
+</head>
+<body>
+  <h1>Blogs</h1>
+  <ul id="blog-list"></ul>
+
+  <script>
+    const blogs = [
+      {title: "First Blog", file: "blogs/first.md"},
+      {title: "Second Blog", file: "blogs/second.md"}
+    ];
+
+    const ul = document.getElementById('blog-list');
+    blogs.forEach(b => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = b.file;
+      a.textContent = b.title;
+      li.appendChild(a);
+      ul.appendChild(li);
+    });
+  </script>
+</body>
+</html>
