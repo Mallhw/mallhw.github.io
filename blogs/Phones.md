@@ -1,6 +1,5 @@
 ---
-title: "Phones"
-date: 2026-01-28
+title: First Post
 ---
 
-Content here.
+This is the blog content.
