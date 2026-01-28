@@ -11,3 +11,11 @@ layout: null
 {% for item in site.test %}
 [{{ item.title }}]({{ item.url }})  
 {% endfor %}
+
+
+# Config Test
+
+Collections available:  
+{% for name in site.collections %}
+- {{ name }}
+{% endfor %}
