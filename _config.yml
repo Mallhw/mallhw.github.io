@@ -1,7 +1,5 @@
-title: My Blog
 description: Personal blog
 markdown: kramdown
-theme: minima
 collections:
   blogs:
     output: true
