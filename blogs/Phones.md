@@ -1,5 +1,5 @@
 ---
-title: First Post
+title: phones
 ---
 
 This is the blog content.
