@@ -2,8 +2,6 @@
 title: Blogs
 ---
 
-# Blogs
-
 <ul>
 {% for post in site.blogs %}
   <li>
