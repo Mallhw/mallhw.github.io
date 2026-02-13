@@ -68,14 +68,16 @@
     transform: translateY(-80px) scale(1.1);
   }
 }
+
 #playfulMessage {
   color: white;
   font-size: 22px;
   font-weight: bold;
-  height: 28px; /* prevents layout jumping */
-  margin-top: 10px;
+  height: 28px;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 20; /* higher than YES */
 }
-
 
 
 
@@ -312,9 +314,27 @@ msgBox.innerText =
   const yesButton = document.getElementById("yes");
 button.style.position = "fixed";
   // Move No button randomly
-  button.style.top = Math.random() * (window.innerHeight - button.offsetHeight) + "px";
-  button.style.left = Math.random() * (window.innerWidth - button.offsetWidth) + "px";
+  // Move No button randomly WITHOUT overlapping Yes
+const yesRect = yesButton.getBoundingClientRect();
 
+let newTop, newLeft;
+let tries = 0;
+
+do {
+  newTop = Math.random() * (window.innerHeight - button.offsetHeight);
+  newLeft = Math.random() * (window.innerWidth - button.offsetWidth);
+
+  tries++;
+} while (
+  tries < 40 && // safety limit
+  newLeft < yesRect.right &&
+  newLeft + button.offsetWidth > yesRect.left &&
+  newTop < yesRect.bottom &&
+  newTop + button.offsetHeight > yesRect.top
+);
+
+button.style.top = newTop + "px";
+button.style.left = newLeft + "px";
   yesScale *= 1.1;
 yesButton.style.setProperty('--scale', yesScale);
 
