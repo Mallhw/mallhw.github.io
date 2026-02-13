@@ -300,29 +300,29 @@ function triggerFinale() {
   const yesButton = document.getElementById("yes");
   const noButton = document.getElementById("no");
   const msgBox = document.getElementById("playfulMessage");
+  const eyebrows = document.querySelectorAll(".eyebrow"); // <-- FIXED
 
   if (noButton) noButton.remove();
   if (msgBox) msgBox.innerText = "i refuse. ur too pretty for me to pass up";
 
-  // Center Yes perfectly
-  // Position Yes **below the message**
+  // Reset Yes button size
+  yesButton.style.transform = "translate(-50%, 0) scale(1)";
+
+  // Position Yes below the message
   yesButton.style.position = "fixed";
   yesButton.style.left = "50%";
-  
-  // Place it just below the playful message
   const msgRect = msgBox.getBoundingClientRect();
-  yesButton.style.top = (msgRect.bottom + 20) + "px"; // 20px below the text
+  yesButton.style.top = (msgRect.bottom + 20) + "px"; // 20px below message
   yesButton.style.zIndex = "999";
 
   // Reattach click handler
   yesButton.onclick = sayYes;
 
-  // Reset eyebrows to slightly mad position
+  // Reset eyebrows to slightly mad
   eyebrows.forEach((brow, index) => {
     const angle = 15; // small mad tilt
     brow.style.transform = (index % 2 === 0) ? `rotate(${angle}deg)` : `rotate(-${angle}deg)`;
   });
-}
 }
 
 function sayYes() {
