@@ -253,6 +253,8 @@ function triggerFinale() {
   yesButton.style.top = "60%";
   yesButton.style.transform =
     "translate(-50%, -50%) scale(3.5)";
+    
+    yesButton.onclick = sayYes;
 }
 function showMessage(x, y) {
   const msg = document.createElement("div");
