@@ -67,6 +67,17 @@
   10%, 30%, 50%, 70%, 90% { transform: translateY(-15px); } /* shorter hops */
 }
 
+    @keyframes yes-hop {
+  0%, 50%, 100% { transform: scale(var(--scale, 1)) translateY(0); }
+  25% { transform: scale(var(--scale, 1)) translateY(-10px); }
+  75% { transform: scale(var(--scale, 1)) translateY(-5px); }
+}
+
+#yes {
+  transition: transform 0.2s ease;  /* smooth scaling for regular growth */
+}
+
+
 #cheetah.bounce {
   animation: hop-cheetah 0.8s infinite steps(1, start);
 }
@@ -147,34 +158,33 @@ function moveNo() {
   const button = document.getElementById("no");
   const yesButton = document.getElementById("yes");
 
-  // Make No button run away
+  // Move No button randomly
   button.style.top = Math.random() * (window.innerHeight - button.offsetHeight) + "px";
   button.style.left = Math.random() * (window.innerWidth - button.offsetWidth) + "px";
 
-  // Make Yes button bigger
-  yesScale *= 1.1; // increase by 10% each time
-  yesButton.style.transform = `scale(${yesScale})`;
+  // Grow Yes button
+  yesScale += 0.1;  // increase 10%
+  yesButton.style.setProperty('--scale', yesScale);
+  
+  // Trigger tiny hop
+  yesButton.style.animation = 'none';      // reset
+  void yesButton.offsetWidth;             // force reflow
+  yesButton.style.animation = 'yes-hop 0.4s ease';
 
+  // Eyebrows logic
   const eyebrows = document.querySelectorAll(".eyebrow");
-
-  // First hover: make eyebrows appear
   if (!eyebrowsVisible) {
-    eyebrows.forEach(brow => {
-      brow.style.opacity = "1";
-    });
+    eyebrows.forEach(brow => { brow.style.opacity = "1"; });
     eyebrowsVisible = true;
   }
 
-  // Increase anger
+  // Increase anger rotation
   angerLevel += 5;
   eyebrows.forEach((brow, index) => {
-    if (index % 2 === 0) {
-      brow.style.transform = `rotate(${angerLevel}deg)`;
-    } else {
-      brow.style.transform = `rotate(-${angerLevel}deg)`;
-    }
+    brow.style.transform = (index % 2 === 0) ? `rotate(${angerLevel}deg)` : `rotate(-${angerLevel}deg)`;
   });
 }
+
 
 function sayYes() {
   // Change the question text
