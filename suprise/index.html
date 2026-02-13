@@ -163,13 +163,10 @@ function moveNo() {
   button.style.left = Math.random() * (window.innerWidth - button.offsetWidth) + "px";
 
   // Grow Yes button
-  yesScale += 0.1;  // increase 10%
+  yesScale *= 1.25;  // increase 10%
   yesButton.style.setProperty('--scale', yesScale);
   
-  // Trigger tiny hop
-  yesButton.style.animation = 'none';      // reset
-  void yesButton.offsetWidth;             // force reflow
-  yesButton.style.animation = 'yes-hop 0.4s ease';
+
 
   // Eyebrows logic
   const eyebrows = document.querySelectorAll(".eyebrow");
