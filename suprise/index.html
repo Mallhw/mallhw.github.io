@@ -226,10 +226,11 @@ let noClicks = 0;
 const messageStages = [
   ["hey...", "are you sure?", "try again 🙂"],
   ["okay rude", "booo", "that's not the plan"],
-  ["stop pressing no", "be serious", "this is getting awkward"],
+  ["stop pressing no", "hey, let's be serious", "🫰"],
   ["the Yes button is RIGHT THERE", "look how MAD they are"],
-  ["I will keep growing.", "You've made their eyebrows inverted"],
-  ["just wait for monday..."]
+  ["hasini...", "You've made their eyebrows inverted"],
+  ["just wait for monday..."],
+  ["🥹"]
 ];
 
 
@@ -249,7 +250,6 @@ function triggerFinale() {
 
   // Center YES perfectly in the viewport
 yesButton.style.position = "fixed";
-yesButton.style.zIndex = "999";       // make sure it’s on top
 yesButton.onclick = sayYes;           // ensure click still works
 }
 function showMessage(x, y) {
