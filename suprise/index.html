@@ -35,10 +35,10 @@
     }
 
     #no {
-      background-color: #999;
-      color: white;
-      position: absolute;
-    }
+  background-color: #999;
+  color: white;
+  position: relative; /* ← change from absolute */
+}
     .character {
   position: fixed;
   width: 150px;
@@ -217,7 +217,7 @@
 </div>
 
 <script>
-
+let finaleTriggered = false;
 let noClicks = 0;
 
 const messageStages = [
@@ -229,6 +229,28 @@ const messageStages = [
   ["you cannot escape destiny."]
 ];
 
+
+function triggerFinale() {
+  if (finaleTriggered) return;
+  finaleTriggered = true;
+
+  const yesButton = document.getElementById("yes");
+  const noButton = document.getElementById("no");
+  const msgBox = document.getElementById("playfulMessage");
+
+  // remove No button
+  if (noButton) noButton.remove();
+
+  // dramatic message
+  msgBox.innerText = "okay fine. you only have one choice now ❤️";
+
+  // center YES perfectly
+  yesButton.style.position = "fixed";
+  yesButton.style.left = "50%";
+  yesButton.style.top = "60%";
+  yesButton.style.transform =
+    "translate(-50%, -50%) scale(3.5)";
+}
 function showMessage(x, y) {
   const msg = document.createElement("div");
   msg.className = "floating-message";
@@ -254,6 +276,9 @@ let eyebrowsVisible = false;
 let yesScale = 1;  // start at normal size
 
 function moveNo() {
+  
+  // switch to absolute positioning once interaction starts
+button.style.position = "fixed";
   // get cursor or touch position
 let x = window.innerWidth / 2;
 let y = window.innerHeight / 2;
@@ -310,6 +335,11 @@ yesButton.classList.add("pop");
   eyebrows.forEach((brow, index) => {
     brow.style.transform = (index % 2 === 0) ? `rotate(${angerLevel}deg)` : `rotate(-${angerLevel}deg)`;
   });
+  
+  // trigger finale after many attempts
+if (noClicks >= 12) {
+  triggerFinale();
+}
 }
 
 
