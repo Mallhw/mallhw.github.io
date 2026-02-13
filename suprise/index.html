@@ -44,6 +44,16 @@
   bottom: 20px;
 }
 
+@keyframes pop {
+  0%   { transform: scale(calc(var(--scale) * 0.9)); }
+  60%  { transform: scale(calc(var(--scale) * 1.15)); }
+  100% { transform: scale(var(--scale)); }
+}
+
+.pop {
+  animation: pop 0.18s ease;
+}
+
 #frog {
   right: 20px;
   bottom: 20px;
