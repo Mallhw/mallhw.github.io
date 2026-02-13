@@ -40,6 +40,31 @@
   width: 150px;
 }
 
+.floating-message {
+  position: fixed;
+  color: white;
+  font-size: 22px;
+  font-weight: bold;
+  pointer-events: none;
+  animation: floatUp 1.6s ease-out forwards;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  z-index: 999;
+}
+
+@keyframes floatUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-80px) scale(1.1);
+  }
+}
+
 #cheetah {
   left: 20px;
   bottom: 20px;
@@ -162,15 +187,68 @@
   <h1 id="question">Will you be my Valentine?</h1>
 
   <button id="yes" onclick="sayYes()">Yes</button>
-  <button id="no" onmouseover="moveNo()">No</button>
+  <button id="no"
+  onmouseover="moveNo(event)"
+  ontouchstart="moveNo(event)">
+  No
+</button>
 </div>
 
 <script>
+
+const noMessages = [
+  "hey 😠",
+  "that's not nice",
+  "try again...",
+  "you sure about that?",
+  "wrong answer 👀",
+  "the Yes button looks better",
+  "stop running!",
+  "be serious 😤",
+  "cmonnnn",
+  "you know you want to"
+];
+
+function showMessage(x, y) {
+  const msg = document.createElement("div");
+  msg.className = "floating-message";
+
+  // random message
+  msg.innerText =
+    noMessages[Math.floor(Math.random() * noMessages.length)];
+
+  // position near cursor/finger
+  msg.style.left = x + "px";
+  msg.style.top = y + "px";
+
+  document.body.appendChild(msg);
+
+  // remove after animation
+  setTimeout(() => {
+    msg.remove();
+  }, 1600);
+}
+
 let angerLevel = 10;   
 let eyebrowsVisible = false;
 let yesScale = 1;  // start at normal size
 
 function moveNo() {
+  // get cursor or touch position
+let x = window.innerWidth / 2;
+let y = window.innerHeight / 2;
+
+if (event) {
+  if (event.touches && event.touches[0]) {
+    x = event.touches[0].clientX;
+    y = event.touches[0].clientY;
+  } else {
+    x = event.clientX;
+    y = event.clientY;
+  }
+}
+
+showMessage(x, y);
   const button = document.getElementById("no");
   const yesButton = document.getElementById("yes");
 
