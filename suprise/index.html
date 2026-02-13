@@ -153,29 +153,23 @@ function moveNo() {
 }
 function sayYes() {
   // Change the question text
-  eyebrowsVisible = false;
   document.getElementById("question").innerText = "YAY!!! love you :) 💕";
 
   // Remove the No button
   document.getElementById("no").remove();
 
-  // Make animals happy
+  // Hide eyebrows
   const eyebrows = document.querySelectorAll(".eyebrow");
-
-  eyebrows.forEach((brow, index) => {
-    if (index % 2 === 0) {
-      brow.style.transform = "rotate(-15deg)";
-    } else {
-      brow.style.transform = "rotate(15deg)";
-    }
+  eyebrows.forEach(brow => {
+    brow.style.opacity = "0";   // hide them
   });
+
+  // Make animals bounce
   document.querySelectorAll(".character").forEach(character => {
     character.classList.add("bounce");
   });
-
-  
-
 }
+
 
 </script>
 
