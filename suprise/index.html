@@ -305,9 +305,24 @@ function triggerFinale() {
   if (msgBox) msgBox.innerText = "i refuse. ur too pretty for me to pass up";
 
   // Center Yes perfectly
+  // Position Yes **below the message**
   yesButton.style.position = "fixed";
-  yesButton.style.transform = "translate(-50%, -50%) scale(1)"; // resets to normal size
+  yesButton.style.left = "50%";
+  
+  // Place it just below the playful message
+  const msgRect = msgBox.getBoundingClientRect();
+  yesButton.style.top = (msgRect.bottom + 20) + "px"; // 20px below the text
+  yesButton.style.zIndex = "999";
+
+  // Reattach click handler
   yesButton.onclick = sayYes;
+
+  // Reset eyebrows to slightly mad position
+  eyebrows.forEach((brow, index) => {
+    const angle = 15; // small mad tilt
+    brow.style.transform = (index % 2 === 0) ? `rotate(${angle}deg)` : `rotate(-${angle}deg)`;
+  });
+}
 }
 
 function sayYes() {
