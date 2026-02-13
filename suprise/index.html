@@ -152,7 +152,7 @@ function moveNo() {
   button.style.left = Math.random() * (window.innerWidth - button.offsetWidth) + "px";
 
   // Make Yes button bigger
-  yesScale += 0.1; // increase by 10% each time
+  yesScale *= 1.1; // increase by 10% each time
   yesButton.style.transform = `scale(${yesScale})`;
 
   const eyebrows = document.querySelectorAll(".eyebrow");
