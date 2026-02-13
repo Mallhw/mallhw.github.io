@@ -137,7 +137,7 @@
   transform-origin: center;
   position: relative;
   z-index: 10;
-  pointer-events: auto; /* ensures clicks still 
+  pointer-events: auto; 
 }
 
 
@@ -374,7 +374,8 @@ function sayYes() {
   document.getElementById("playfulMessage").remove();
 
 
-    if (noButton) document.getElementById("no").remove();
+const noButton = document.getElementById("no");
+if (noButton) noButton.remove();
   // Hide eyebrows
   const eyebrows = document.querySelectorAll(".eyebrow");
   eyebrows.forEach(brow => {
