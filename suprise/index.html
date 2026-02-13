@@ -247,12 +247,13 @@ function triggerFinale() {
   // dramatic message
   msgBox.innerText = "okay fine. you only have one choice now ❤️";
 
-  // center YES perfectly
-  yesButton.style.position = "fixed";
-  yesButton.style.left = "50%";
-  yesButton.style.top = "60%";
-    
-    yesButton.onclick = sayYes;
+  // Center YES perfectly in the viewport
+yesButton.style.position = "fixed";
+yesButton.style.left = "50%";
+yesButton.style.top = "50%";          // change from 60% to 50%
+yesButton.style.transform = "translate(-50%, -50%) scale(3.5)";  // translate centers it, scale grows it
+yesButton.style.zIndex = "999";       // make sure it’s on top
+yesButton.onclick = sayYes;           // ensure click still works
 }
 function showMessage(x, y) {
   const msg = document.createElement("div");
