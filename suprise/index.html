@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Big Suprise!</title>
   <style>
     body {
@@ -177,10 +178,13 @@ function moveNo() {
   button.style.top = Math.random() * (window.innerHeight - button.offsetHeight) + "px";
   button.style.left = Math.random() * (window.innerWidth - button.offsetWidth) + "px";
 
-  // Grow Yes button
-  yesScale *= 2.0;  // increase 10%
-  yesButton.style.setProperty('--scale', yesScale);
-  
+  yesScale *= 1.35;
+yesButton.style.setProperty('--scale', yesScale);
+
+// trigger pop animation
+yesButton.classList.remove("pop");
+void yesButton.offsetWidth; // restart animation
+yesButton.classList.add("pop");
 
 
   // Eyebrows logic
