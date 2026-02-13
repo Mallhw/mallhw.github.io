@@ -321,7 +321,7 @@ function triggerFinale() {
 
   // Reset eyebrows to slightly mad
   eyebrows.forEach((brow, index) => {
-    const angle = 15; // small mad tilt
+    const angle = 45; // small mad tilt
     brow.style.transform = (index % 2 === 0) ? `rotate(${angle}deg)` : `rotate(-${angle}deg)`;
   });
 }
