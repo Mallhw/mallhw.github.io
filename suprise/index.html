@@ -226,11 +226,10 @@ let noClicks = 0;
 const messageStages = [
   ["hey...", "are you sure?", "try again 🙂"],
   ["okay rude", "booo", "that's not the plan"],
-  ["stop pressing no ☺️", "hey, let's be serious", "🫰"],
+  ["stop pressing no", "hey, let's be serious", "🥹"],
   ["the Yes button is RIGHT THERE", "look how MAD they are"],
   ["hasini...", "You've made their eyebrows inverted"],
-  ["just wait for monday..."],
-  ["🥹"]
+  ["just wait for monday..."]
 ];
 
 
@@ -246,7 +245,7 @@ function triggerFinale() {
     if (noButton) document.getElementById("no").remove();
 
   // dramatic message
-  msgBox.innerText = "sorry i refuse 😁❤️";
+  msgBox.innerText = "sorry i refuse";
 
   // Center YES perfectly in the viewport
 yesButton.style.position = "fixed";
@@ -356,7 +355,7 @@ yesButton.classList.add("pop");
   });
   
   // trigger finale after many attempts
-if (noClicks >= 20) {
+if (noClicks >= 18) {
   triggerFinale();
 }
 }
