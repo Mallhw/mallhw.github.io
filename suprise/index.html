@@ -306,7 +306,9 @@ function triggerFinale() {
 
   // Center Yes perfectly
   yesButton.style.position = "fixed";
-  
+  yesButton.style.left = "50%";
+  yesButton.style.top = "50%";
+  yesButton.style.transform = "translate(-50%, -50%) scale(1)"; // normal size
   yesButton.onclick = sayYes;
 }
 
