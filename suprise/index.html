@@ -111,6 +111,12 @@
   0%, 20%, 40%, 60%, 80%, 100% { transform: translateY(0); }
   10%, 30%, 50%, 70%, 90% { transform: translateY(-60px); } /* quick jumps */
 }
+#buttonContainer {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+}
 
 @keyframes hop-frog {
   0%, 20%, 40%, 60%, 80%, 100% { transform: translateY(0); }
@@ -200,27 +206,27 @@
 <div id="mainContent">
   <h1 id="question">Will you be my Valentine?</h1>
   <p id="playfulMessage"></p>
+<div id="buttonContainer">
   <button id="yes" onclick="sayYes()">Yes</button>
   <button id="no"
-  onmouseover="moveNo(event)"
-  ontouchstart="moveNo(event)">
-  No
-</button>
+    onmouseover="moveNo(event)"
+    ontouchstart="moveNo(event)">
+    No
+  </button>
+</div>
 </div>
 
 <script>
 
-const noMessages = [
-  "hey 😠",
-  "that's not nice",
-  "try again...",
-  "you sure about that?",
-  "wrong answer 👀",
-  "the Yes button looks better",
-  "stop running!",
-  "be serious 😤",
-  "cmonnnn",
-  "you know you want to"
+let noClicks = 0;
+
+const messageStages = [
+  ["hey...", "are you sure?", "try again 🙂"],
+  ["okay rude", "why tho", "that's not the plan"],
+  ["stop pressing no 😤", "be serious", "this is getting awkward"],
+  ["the Yes button is RIGHT THERE"],
+  ["I will keep growing."],
+  ["you cannot escape destiny."]
 ];
 
 function showMessage(x, y) {
@@ -262,10 +268,20 @@ if (event) {
   }
 }
 // show playful message
-const msgBox = document.getElementById("playfulMessage");
-msgBox.innerText =
-  noMessages[Math.floor(Math.random() * noMessages.length)];
+noClicks++;
 
+// choose stage based on attempts
+let stage = Math.min(
+  Math.floor(noClicks / 3),
+  messageStages.length - 1
+);
+
+const msgBox = document.getElementById("playfulMessage");
+const stageMessages = messageStages[stage];
+
+msgBox.innerText =
+  stageMessages[Math.floor(Math.random() * stageMessages.length)];
+  
   const button = document.getElementById("no");
   const yesButton = document.getElementById("yes");
 
