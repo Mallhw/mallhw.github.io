@@ -382,10 +382,12 @@ function sayYes() {
   document.getElementById("question").innerText = "YAY!!! love you :)";
 
   // Remove the No button
-  if (noButton) noButton.remove();
+
   document.getElementById("yes").remove();
   document.getElementById("playfulMessage").remove();
 
+
+    if (noButton) document.getElementById("no").remove();
   // Hide eyebrows
   const eyebrows = document.querySelectorAll(".eyebrow");
   eyebrows.forEach(brow => {
