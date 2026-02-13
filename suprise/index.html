@@ -87,6 +87,7 @@
   </style>
 </head>
 <body>
+  
 <div class="character" id="cheetah">
   <img src="cheetah.png">
   <div class="eyebrow left"></div>
@@ -127,8 +128,30 @@ function moveNo() {
   });
 }
 function sayYes() {
-  document.body.innerHTML = "<h1>YAY!!! love you :)</h1>";
+  // Change the question text
+  document.getElementById("question").innerText = "YAY!!! love you :) 💕";
+
+  // Remove the No button
+  document.getElementById("no").remove();
+
+  // Make animals happy
+  const eyebrows = document.querySelectorAll(".eyebrow");
+
+  eyebrows.forEach((brow, index) => {
+    if (index % 2 === 0) {
+      brow.style.transform = "rotate(-15deg)";
+    } else {
+      brow.style.transform = "rotate(15deg)";
+    }
+  });
+
+  // Optional: make them bounce
+  document.querySelectorAll(".character").forEach(character => {
+    character.style.transition = "transform 0.4s ease";
+    character.style.transform = "scale(1.1)";
+  });
 }
+
 </script>
 
 
