@@ -53,6 +53,10 @@
   width: 100%;
 }
 
+.bounce {
+    animation: bounce 0.8s infinite ease-in-out;
+  }
+
 .eyebrow {
   position: absolute;
   width: 45px;
@@ -83,6 +87,8 @@
 #cheetah .eyebrow.right {
   right: 20px; /* adjust inward */
 }
+
+
 
 
 
@@ -144,6 +150,7 @@ function moveNo() {
 }
 function sayYes() {
   // Change the question text
+  eyebrowsVisible = false;
   document.getElementById("question").innerText = "YAY!!! love you :) 💕";
 
   // Remove the No button
@@ -159,12 +166,12 @@ function sayYes() {
       brow.style.transform = "rotate(15deg)";
     }
   });
-
-  // Optional: make them bounce
   document.querySelectorAll(".character").forEach(character => {
-    character.style.transition = "transform 0.4s ease";
-    character.style.transform = "scale(1.1)";
+    character.classList.add("bounce");
   });
+
+  
+
 }
 
 </script>
