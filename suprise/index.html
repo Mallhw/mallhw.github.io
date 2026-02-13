@@ -372,7 +372,7 @@ function sayYes() {
   document.getElementById("question").innerText = "YAY!!! love you :)";
 
   // Remove the No button
-  document.getElementById("no").remove();
+  if (noButton) noButton.remove();
   document.getElementById("yes").remove();
   document.getElementById("playfulMessage").remove();
 
