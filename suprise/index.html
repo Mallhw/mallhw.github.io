@@ -259,32 +259,31 @@ function moveNo(event) {
   void yesButton.offsetWidth; // restart animation
   yesButton.classList.add("pop");
 
-  // Show eyebrows
+  // Show eyebrows progressively
   const eyebrows = document.querySelectorAll(".eyebrow");
   if (!eyebrowsVisible) {
     eyebrows.forEach(brow => brow.style.opacity = "1");
     eyebrowsVisible = true;
   }
-
-  // Rotate eyebrows progressively
   let angerLevel = 10 + noClicks * 5;
   eyebrows.forEach((brow, index) => {
     brow.style.transform = (index % 2 === 0) ? `rotate(${angerLevel}deg)` : `rotate(-${angerLevel}deg)`;
   });
 
-  // Move No button without overlapping Yes
+  // Move No button randomly **without overlapping and at minimum distance**
   const yesRect = yesButton.getBoundingClientRect();
+  const minDistance = 120; // pixels away from Yes
   let newTop, newLeft, tries = 0;
   do {
     newTop = Math.random() * (window.innerHeight - noButton.offsetHeight);
     newLeft = Math.random() * (window.innerWidth - noButton.offsetWidth);
     tries++;
-  } while (tries < 40 &&
-           newLeft < yesRect.right &&
-           newLeft + noButton.offsetWidth > yesRect.left &&
-           newTop < yesRect.bottom &&
-           newTop + noButton.offsetHeight > yesRect.top
+  } while (
+    tries < 50 &&
+    Math.abs(newLeft + noButton.offsetWidth/2 - (yesRect.left + yesRect.width/2)) < minDistance &&
+    Math.abs(newTop + noButton.offsetHeight/2 - (yesRect.top + yesRect.height/2)) < minDistance
   );
+
   noButton.style.position = "fixed";
   noButton.style.top = newTop + "px";
   noButton.style.left = newLeft + "px";
