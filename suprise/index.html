@@ -272,7 +272,7 @@ function moveNo(event) {
 
   // Move No button randomly **without overlapping and at minimum distance**
   const yesRect = yesButton.getBoundingClientRect();
-  const minDistance = 120; // pixels away from Yes
+  const minDistance = 200; // pixels away from Yes
   let newTop, newLeft, tries = 0;
   do {
     newTop = Math.random() * (window.innerHeight - noButton.offsetHeight);
