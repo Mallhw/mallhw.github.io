@@ -220,18 +220,79 @@
 </div>
 
 <script>
-let finaleTriggered = false;
-let noClicks = 0;
-
-const messageStages = [
-  ["hey...", "are you sure?", "try again 🙂"],
-  ["okay rude", "booo", "that's not the plan"],
-  ["no more no", "hey, let's be serious", "ur a goof"],
-  ["the Yes button is RIGHT THERE", "look how MAD they are"],
-  [ "You've made their eyebrows inverted"],
-  ["just wait for monday hasini..."]
+// Fixed order messages
+const orderedMessages = [
+  "hey...",
+  "are you sure?",
+  "try again 🙂",
+  "okay rude",
+  "booo",
+  "that's not the plan",
+  "no more no",
+  "hey, let's be serious",
+  "ur a goof",
+  "the Yes button is RIGHT THERE",
+  "look how MAD they are",
+  "You've made their eyebrows inverted",
+  "just wait for monday hasini..."
 ];
 
+let noClicks = 0;
+let yesScale = 1;
+let eyebrowsVisible = false;
+let finaleTriggered = false;
+
+function moveNo(event) {
+  const yesButton = document.getElementById("yes");
+  const noButton = document.getElementById("no");
+  const msgBox = document.getElementById("playfulMessage");
+
+  // Show next message in order
+  msgBox.innerText = orderedMessages[noClicks] || orderedMessages[orderedMessages.length - 1];
+  noClicks++;
+
+  // Grow Yes button
+  yesScale *= 1.15;
+  yesButton.style.setProperty('--scale', yesScale);
+  yesButton.classList.remove("pop");
+  void yesButton.offsetWidth; // restart animation
+  yesButton.classList.add("pop");
+
+  // Show eyebrows
+  const eyebrows = document.querySelectorAll(".eyebrow");
+  if (!eyebrowsVisible) {
+    eyebrows.forEach(brow => brow.style.opacity = "1");
+    eyebrowsVisible = true;
+  }
+
+  // Rotate eyebrows progressively
+  let angerLevel = 10 + noClicks * 5;
+  eyebrows.forEach((brow, index) => {
+    brow.style.transform = (index % 2 === 0) ? `rotate(${angerLevel}deg)` : `rotate(-${angerLevel}deg)`;
+  });
+
+  // Move No button without overlapping Yes
+  const yesRect = yesButton.getBoundingClientRect();
+  let newTop, newLeft, tries = 0;
+  do {
+    newTop = Math.random() * (window.innerHeight - noButton.offsetHeight);
+    newLeft = Math.random() * (window.innerWidth - noButton.offsetWidth);
+    tries++;
+  } while (tries < 40 &&
+           newLeft < yesRect.right &&
+           newLeft + noButton.offsetWidth > yesRect.left &&
+           newTop < yesRect.bottom &&
+           newTop + noButton.offsetHeight > yesRect.top
+  );
+  noButton.style.position = "fixed";
+  noButton.style.top = newTop + "px";
+  noButton.style.left = newLeft + "px";
+
+  // Trigger finale after last message
+  if (noClicks >= orderedMessages.length) {
+    triggerFinale();
+  }
+}
 
 function triggerFinale() {
   if (finaleTriggered) return;
@@ -241,141 +302,31 @@ function triggerFinale() {
   const noButton = document.getElementById("no");
   const msgBox = document.getElementById("playfulMessage");
 
-  // remove No button
-    if (noButton) document.getElementById("no").remove();
+  if (noButton) noButton.remove();
+  if (msgBox) msgBox.innerText = "okay fine. you only have one choice now ❤️";
 
-  // dramatic message
-  msgBox.innerText = "sorry i refuse";
-
-  // Center YES perfectly in the viewport
-yesButton.style.position = "fixed";
-yesButton.onclick = sayYes;           // ensure click still works
+  // Center Yes perfectly
+  yesButton.style.position = "fixed";
+  yesButton.style.left = "50%";
+  yesButton.style.top = "50%";
+  yesButton.style.transform = "translate(-50%, -50%) scale(3.5)";
+  yesButton.style.zIndex = "999";
+  yesButton.onclick = sayYes;
 }
-function showMessage(x, y) {
-  const msg = document.createElement("div");
-  msg.className = "floating-message";
-
-  // random message
-  msg.innerText =
-    noMessages[Math.floor(Math.random() * noMessages.length)];
-
-  // position near cursor/finger
-  msg.style.left = x + "px";
-  msg.style.top = y + "px";
-
-  document.body.appendChild(msg);
-
-  // remove after animation
-  setTimeout(() => {
-    msg.remove();
-  }, 1600);
-}
-
-let angerLevel = 10;   
-let eyebrowsVisible = false;
-let yesScale = 1;  // start at normal size
-
-function moveNo(event) {
-  
-  // switch to absolute positioning once interaction starts
-
-  // get cursor or touch position
-let x = window.innerWidth / 2;
-let y = window.innerHeight / 2;
-
-if (event) {
-  if (event.touches && event.touches[0]) {
-    x = event.touches[0].clientX;
-    y = event.touches[0].clientY;
-  } else {
-    x = event.clientX;
-    y = event.clientY;
-  }
-}
-// show playful message
-noClicks++;
-
-// choose stage based on attempts
-let stage = Math.min(
-  Math.floor(noClicks / 3),
-  messageStages.length - 1
-);
-
-const msgBox = document.getElementById("playfulMessage");
-const stageMessages = messageStages[stage];
-
-msgBox.innerText =
-  stageMessages[Math.floor(Math.random() * stageMessages.length)];
-  
-  const button = document.getElementById("no");
-  const yesButton = document.getElementById("yes");
-button.style.position = "fixed";
-  // Move No button randomly
-  // Move No button randomly WITHOUT overlapping Yes
-const yesRect = yesButton.getBoundingClientRect();
-
-let newTop, newLeft;
-let tries = 0;
-
-do {
-  newTop = Math.random() * (window.innerHeight - button.offsetHeight);
-  newLeft = Math.random() * (window.innerWidth - button.offsetWidth);
-
-  tries++;
-} while (
-  tries < 40 && // safety limit
-  newLeft < yesRect.right &&
-  newLeft + button.offsetWidth > yesRect.left &&
-  newTop < yesRect.bottom &&
-  newTop + button.offsetHeight > yesRect.top
-);
-
-button.style.top = newTop + "px";
-button.style.left = newLeft + "px";
-  yesScale *= 1.1;
-yesButton.style.setProperty('--scale', yesScale);
-
-// trigger pop animation
-yesButton.classList.remove("pop");
-void yesButton.offsetWidth; // restart animation
-yesButton.classList.add("pop");
-
-
-  // Eyebrows logic
-  const eyebrows = document.querySelectorAll(".eyebrow");
-  if (!eyebrowsVisible) {
-    eyebrows.forEach(brow => { brow.style.opacity = "1"; });
-    eyebrowsVisible = true;
-  }
-
-  // Increase anger rotation
-  angerLevel += 5;
-  eyebrows.forEach((brow, index) => {
-    brow.style.transform = (index % 2 === 0) ? `rotate(${angerLevel}deg)` : `rotate(-${angerLevel}deg)`;
-  });
-  
-  // trigger finale after many attempts
-if (noClicks >= 17) {
-  triggerFinale();
-}
-}
-
 
 function sayYes() {
-  // Change the question text
-  document.getElementById("question").innerText = "love u hasini :)";
-  // Remove the No button
+  const yesButton = document.getElementById("yes");
+  const noButton = document.getElementById("no");
+  const msgBox = document.getElementById("playfulMessage");
 
-  document.getElementById("yes").remove();
-  document.getElementById("playfulMessage").remove();
+  document.getElementById("question").innerText = "YAY!!! love you :)";
+  if (yesButton) yesButton.remove();
+  if (noButton) noButton.remove();
+  if (msgBox) msgBox.remove();
 
-
-const noButton = document.getElementById("no");
-if (noButton) noButton.remove();
   // Hide eyebrows
-  const eyebrows = document.querySelectorAll(".eyebrow");
-  eyebrows.forEach(brow => {
-    brow.style.opacity = "0";   // hide them
+  document.querySelectorAll(".eyebrow").forEach(brow => {
+    brow.style.opacity = "0";
   });
 
   // Make animals bounce
@@ -383,8 +334,6 @@ if (noButton) noButton.remove();
     character.classList.add("bounce");
   });
 }
-
-
 </script>
 
 
