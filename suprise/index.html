@@ -301,7 +301,7 @@ function triggerFinale() {
   const noButton = document.getElementById("no");
   const msgBox = document.getElementById("playfulMessage");
   const eyebrows = document.querySelectorAll(".eyebrow"); // <-- FIXED
-
+  const question = document.getElementById("question");
   if (noButton) noButton.remove();
   if (msgBox) msgBox.innerText = "i refuse. ur too pretty for me to pass up";
 
@@ -311,8 +311,9 @@ function triggerFinale() {
   // Position Yes below the message
   yesButton.style.position = "fixed";
   yesButton.style.left = "50%";
-  const msgRect = msgBox.getBoundingClientRect();
-  yesButton.style.top = (msgRect.bottom + 20) + "px"; // 20px below message
+  const questionRect = question.getBoundingClientRect();
+  yesButton.style.left = (questionRect.left + questionRect.width / 2 - yesButton.offsetWidth / 2) + "px";
+  yesButton.style.top = (msgRect.bottom + 10) + "px"; // 20px below message
   yesButton.style.zIndex = "999";
 
   // Reattach click handler
