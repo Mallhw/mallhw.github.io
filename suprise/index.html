@@ -288,7 +288,7 @@ function moveNo(event) {
   noButton.style.left = newLeft + "px";
 
   // Trigger finale after last message
-  if (noClicks >= orderedMessages.length) {
+  if (noClicks > orderedMessages.length) {
     triggerFinale();
   }
 }
