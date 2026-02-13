@@ -34,25 +34,58 @@
       color: white;
       position: absolute;
     }
-    .left-img {
+    .character {
   position: fixed;
-  left: 20px;
-  bottom: 20px;
   width: 150px;
 }
 
-.right-img {
-  position: fixed;
+#cheetah {
+  left: 20px;
+  bottom: 20px;
+}
+
+#frog {
   right: 20px;
   bottom: 20px;
-  width: 150px;
 }
+
+.character img {
+  width: 100%;
+}
+
+.eyebrow {
+  position: absolute;
+  width: 40px;
+  height: 6px;
+  background: black;
+  top: 25px;
+  transition: transform 0.3s ease;
+}
+
+.eyebrow.left {
+  left: 25px;
+}
+
+.eyebrow.right {
+  right: 25px;
+}
+
 
   </style>
 </head>
 <body>
-<img src="cheetah.png" class="left-img">
-<img src="frog.png" class="right-img">
+<div class="character" id="cheetah">
+  <img src="cheetah.png">
+  <div class="eyebrow left"></div>
+  <div class="eyebrow right"></div>
+</div>
+
+<div class="character" id="frog">
+  <img src="frog.png">
+  <div class="eyebrow left"></div>
+  <div class="eyebrow right"></div>
+</div>
+
 
 <h1>Will you be my Valentine?</h1>
 
@@ -60,16 +93,28 @@
 <button id="no" onmouseover="moveNo()">No</button>
 
 <script>
-function sayYes() {
-  document.body.innerHTML = "<h1>YAY!!! I love you :)</h1>";
-}
+let angerLevel = 0;
 
 function moveNo() {
   const button = document.getElementById("no");
+
   button.style.top = Math.random() * window.innerHeight + "px";
   button.style.left = Math.random() * window.innerWidth + "px";
+
+  angerLevel += 5;
+
+  const eyebrows = document.querySelectorAll(".eyebrow");
+
+  eyebrows.forEach((brow, index) => {
+    if (index % 2 === 0) {
+      brow.style.transform = `rotate(${angerLevel}deg)`;
+    } else {
+      brow.style.transform = `rotate(-${angerLevel}deg)`;
+    }
+  });
 }
 </script>
+
 
 </body>
 </html>
