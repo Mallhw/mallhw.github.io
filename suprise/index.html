@@ -59,12 +59,12 @@
 
  @keyframes hop-cheetah {
   0%, 20%, 40%, 60%, 80%, 100% { transform: translateY(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateY(-30px); } /* quick jumps */
+  10%, 30%, 50%, 70%, 90% { transform: translateY(-60px); } /* quick jumps */
 }
 
 @keyframes hop-frog {
   0%, 20%, 40%, 60%, 80%, 100% { transform: translateY(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateY(-15px); } /* shorter hops */
+  10%, 30%, 50%, 70%, 90% { transform: translateY(-40px); } /* shorter hops */
 }
 
     @keyframes yes-hop {
@@ -192,6 +192,7 @@ function sayYes() {
 
   // Remove the No button
   document.getElementById("no").remove();
+  document.getElementById("yes").remove();
 
   // Hide eyebrows
   const eyebrows = document.querySelectorAll(".eyebrow");
