@@ -57,22 +57,22 @@
     animation: bounce 0.8s infinite ease-in-out;
   }
 
-    @keyframes bounce-cheetah {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-30px); }  /* higher bounce */
+ @keyframes hop-cheetah {
+  0%, 20%, 40%, 60%, 80%, 100% { transform: translateY(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateY(-30px); } /* quick jumps */
 }
 
-@keyframes bounce-frog {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-15px); }  /* smaller bounce */
+@keyframes hop-frog {
+  0%, 20%, 40%, 60%, 80%, 100% { transform: translateY(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateY(-15px); } /* shorter hops */
 }
 
 #cheetah.bounce {
-  animation: bounce-cheetah 0.8s infinite ease-in-out;
+  animation: hop-cheetah 0.8s infinite steps(1, start);
 }
 
 #frog.bounce {
-  animation: bounce-frog 0.8s infinite ease-in-out 0.2s;  /* slight delay for fun */
+  animation: hop-frog 0.8s infinite steps(1, start) 0.2s;
 }
 
 #frog {
