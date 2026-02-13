@@ -56,6 +56,25 @@
 .bounce {
     animation: bounce 0.8s infinite ease-in-out;
   }
+
+    @keyframes bounce-cheetah {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-30px); }  /* higher bounce */
+}
+
+@keyframes bounce-frog {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }  /* smaller bounce */
+}
+
+#cheetah.bounce {
+  animation: bounce-cheetah 0.8s infinite ease-in-out;
+}
+
+#frog.bounce {
+  animation: bounce-frog 0.8s infinite ease-in-out 0.2s;  /* slight delay for fun */
+}
+
 #frog {
   animation-delay: 0.2s;
 }
@@ -153,7 +172,7 @@ function moveNo() {
 }
 function sayYes() {
   // Change the question text
-  document.getElementById("question").innerText = "YAY!!! love you :) 💕";
+  document.getElementById("question").innerText = "YAY!!! love you :)";
 
   // Remove the No button
   document.getElementById("no").remove();
