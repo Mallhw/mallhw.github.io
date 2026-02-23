@@ -20,6 +20,6 @@ Here I would like to outline my beliefs on what I must do.
 
 Today, I am a mix of emotions. I am proud. I am hopeful. And, I am determined to do good.
 
-As Whitman said, That the powerful play goes on and you may contri bute a verse. What will your verse be?
+As Whitman said, That the powerful play goes on and you may contribute a verse. What will your verse be?
 
 I have chosen mine.
