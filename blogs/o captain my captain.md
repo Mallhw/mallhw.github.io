@@ -1,7 +1,4 @@
----
-title: o captain my captain
-date: 2026-02-2
----
+
 
 *o captain! my captain!*
 
