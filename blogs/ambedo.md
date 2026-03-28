@@ -1,6 +1,6 @@
 ---
 title: ambedo
-date: 2026-03-16
+date: 2026-03-28
 ---
 
 *Ambedo - when a person is fully absorbed in vivid sensor details leading to heightened awarness*
