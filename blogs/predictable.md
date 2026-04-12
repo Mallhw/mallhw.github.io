@@ -1,0 +1,12 @@
+---
+title: the boringness of the uninquisitive
+date: 2026-04-12
+---
+
+*Recently been reading Making the Most of College by Richard J. Light and read a passage called Not Being Predictable that I'll summarize below*
+
+A professor that has taken a stance on either side of a cultural war/political issue immediately becomes less interesting. This is the findings of Dr. Light when studying Harvard students who were interviewed about their experiences with their professors.
+
+This finding reminded me of possibly the most annoying person I've met in 2026 - who will I name Sally for ananoymous reasons. I met Sally at a scholarship program at UNC Chapel Hill, and immediately I could tell she was short-sighted. By all accounts she was sucessful - accepted into Harvard, Princeton, Yale, Stanford, etc - and well educated. However, she was the type of person to impose her opinions on others, or start "intellectual conversations" when in reality she wanted to prove her intelligence. During the last day of the program, when all of the interviews and exams were finished, I sat with a group of people at 2 AM in the hotel lobby. Sally began to question one of the guy's political opinions. Yet, every time he stated an opinion that didn't perfectly align with her own she would scoff and put on a show of incredulous shouting. The worst part was I shared similar opinions about social issues, but her attitude made me cringe. I was proven right that she was quite oblivious to her surroundings when I saw her later post on instagram "So, it's hard I guess?" when posting all of her college decisions to these elite institutions (obviously it's insanely hard to get in).
+
+In contrast, I also was reminded of a John Hopkins Fencing Coach who I met during an interview. He was a balkan man in his late 30s, and he spoke passionately about the ideas of philsophy. He questioned what I wanted to study, my philsophical ideas about fencing, and who I wanted to become. He prosed questions against each of my explanations to further have me dig into my reasoning. He even understood many of the artifical intellignece frontiers that would have been gibberish to laymen. I was fascinated by this man and so I decided to probe into his own political philsophies. In there, he provided a rich argument for both sides of every social issue. He had leanings towards one issue that had no correlation with another, yet each was clearly reasoned out.
