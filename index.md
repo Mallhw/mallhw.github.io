@@ -11,4 +11,3 @@ title: Blogs
   </li>
 {% endfor %}
 </ul>
-
