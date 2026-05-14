@@ -3,8 +3,7 @@ title: Blogs
 ---
 
 <ul>
-{% assign blog_pages = site.pages | sort: "date" | reverse %}
-{% for post in blog_pages %}
+{% for post in site.pages %}
   {% if post.path contains "blogs/" %}
     <li>
       <a href="{{ post.url }}">{{ post.title }}</a>
