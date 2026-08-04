@@ -333,7 +333,7 @@
       { amp: 3.5, len: 210, w: -0.00052, ph: 1.7 },
       { amp: 2.0, len: 95,  w:  0.00080, ph: 3.4 }
     ];
-    var TIDE_AMP = 10;
+    var TIDE_AMP = 5;
     var TIDE_W = 0.0000698;   // ~90s for one full rise and fall
 
     var W = 0, H = 0, surfaceY = 0, maxR = 0;
@@ -364,7 +364,7 @@
       // window height. Adding scrollY keeps it correct if we measure mid-page.
       var head = document.querySelector(".header");
       var r = head && head.getBoundingClientRect();
-      surfaceY = (r && r.height) ? r.bottom + window.scrollY + 28 : H * 0.22;
+      surfaceY = (r && r.height) ? r.bottom + window.scrollY + 13 : H * 0.22;
     }
 
     function waveAt(x, t, dy, ph) {
