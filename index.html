@@ -284,8 +284,10 @@
       btn.textContent = theme === "dark" ? "light" : "dark";
     }
 
+    // Light is the default look. The OS setting is deliberately not consulted —
+    // everyone lands on the tan page unless they've picked dark here before.
     var saved = stored();
-    apply(saved || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"));
+    apply(saved || "light");
 
     btn.addEventListener("click", function () {
       var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
