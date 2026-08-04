@@ -1,0 +1,7 @@
+# The blog is kept in the repo but deliberately not published.
+# Jekyll skips these, so /blog/ and /blogs/* return 404.
+# To put the blog back online, delete the two exclude entries below
+# and re-add a <a href="blog/">blog</a> link to the footer in index.html.
+exclude:
+  - blog/
+  - blogs/
