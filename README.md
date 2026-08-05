@@ -18,7 +18,7 @@ Where things are, top to bottom:
 | --- | --- |
 | `<style>` → `:root` | **Colours.** Five variables per theme: `--bg`, `--fg`, `--name`, `--dim`, `--rule`, plus `--sea` / `--sea-k` for the animation |
 | `@media print` | print palette — see below |
-| `FONT DATA` markers | **Generated. Skip it.** Four enormous base64 lines |
+| `FONT DATA` markers | **Generated. Skip it.** One enormous base64 line |
 | `YOUR COPY STARTS HERE` | **The words.** One paragraph, then a `<ul>` of bullets, then the footer links |
 | first `<script>` | theme toggle — OS preference on a first visit, then remembers your choice |
 | second `<script>` | the background animation |
@@ -29,21 +29,43 @@ em dash. Add and delete `<li>` items freely; nothing depends on how many there a
 
 ### The font
 
-IBM Plex Mono, embedded in the file as base64 woff2 (weights 300/400/500/600, ~52 KB).
-No Google Fonts request, so it renders instantly, works offline, and leaks nothing to a
-third party. It's under the SIL Open Font License, which permits bundling it this way —
-`build/IBMPlexMono-LICENSE.txt` is that license, and it should travel with the project.
+Karla, embedded in the file as base64 woff2 (~31 KB). It's a variable font, so one file
+covers every weight the page uses (300-600) — that's smaller than the four static files
+it replaced. No Google Fonts request, so it renders instantly, works offline, and leaks
+nothing to a third party. It's under the SIL Open Font License, which permits bundling it
+this way — `build/Karla-LICENSE.txt` is that license, and it should travel with the
+project.
+
+Karla was picked by running every candidate through a head-to-head tournament rather than
+by eye. It beat 30 other open-licensed faces over 428 pairwise comparisons.
+
+**Size and measure are part of the choice, not decoration.** Three numbers hang together
+and should move together:
+
+| Where | Value | Why |
+| --- | --- | --- |
+| `body` font-size | `14.8px` | a proportional face reads smaller than a monospace at the same pixel size; this is the equivalent of the old 14px mono |
+| `body` line-height | `1.8` | mono needs the extra air that `2` gave it, Karla doesn't |
+| `.wrap` width | `min(90vw, 576px)` | 576 minus the 28px gutters leaves a 520px column ≈ 75 characters a line |
+
+That last one matters most. The previous 770px cap was sized for a monospace at ~85
+characters a line. Karla is narrower per character, so the *same box* would run 93-103
+characters — well past readable. If you ever change the typeface again, re-check the
+measure; roughly 60-75 characters a line is the target.
 
 The font data sits between two `FONT DATA` marker comments at the end of the stylesheet.
-You will almost certainly never touch it. If you ever change typeface, drop new
-`w<weight>.b64` files into `build/` and run:
+You will almost certainly never touch it. If you ever change typeface, drop the new
+`.b64` file into `build/`, point `FAMILY` and `FACES` at it in `build/regen-fonts.py`,
+and run:
 
 ```sh
 python3 build/regen-fonts.py
 ```
 
-That script rewrites **only** the region between those two markers — it cannot overwrite
-your copy, and it aborts rather than guessing if the markers are missing.
+`FACES` is a list of `(css-font-weight, filename)`. A variable font is one entry with a
+range (`"300 600"`); a static family is one entry per weight. That script rewrites
+**only** the region between those two markers — it cannot overwrite your copy, and it
+aborts rather than guessing if the markers are missing.
 
 ## The background animation
 
