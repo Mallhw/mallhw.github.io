@@ -7,25 +7,16 @@
 <meta name="description" content="Matthew Li — studying Electrical Engineering and Computer Science at Stanford University.">
 <style>
   :root {
-    --bg: #1c1814;
-    --fg: #c8bfb0;
-    --name: #f5efe4;
-    --dim: #8f8474;
-    --rule: #302a23;
-    /* background animation: raw RGB triple + an alpha multiplier, read by the
-       canvas script. Turn --sea-k up or down to make the ocean more or less
-       visible; it is the single knob for the whole effect. */
-    --sea: 245, 239, 228;
-    --sea-k: 1;
-  }
-  :root[data-theme="light"] {
     --bg: #f3ede1;
     --fg: #4a4238;
     --name: #231f1a;
     --dim: #6e624e;
     --rule: #e2d9c8;
-    /* dark ink on a light page carries less contrast per unit alpha than white
-       ink on a dark one, so light mode needs a heavier hand to look equally faint */
+    /* background animation: raw RGB triple + an alpha multiplier, read by the
+       canvas script. Turn --sea-k up or down to make the ocean more or less
+       visible; it is the single knob for the whole effect. Dark ink on a light
+       page carries less contrast per unit alpha than the reverse, which is why
+       this sits well above 1. */
     --sea: 90, 78, 60;
     --sea-k: 1.7;
   }
@@ -92,21 +83,6 @@
     letter-spacing: -0.01em;
   }
 
-  #theme {
-    appearance: none;
-    border: none;
-    background: transparent;
-    color: var(--dim);
-    font-family: inherit;
-    font-size: 12.7px;
-    font-weight: 300;
-    cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
-    line-height: 1.6;
-  }
-  #theme:hover { color: var(--fg); background: var(--rule); }
-
   p { margin-bottom: 22px; }
 
   ul { margin-left: 20px; margin-bottom: 14px; }
@@ -138,21 +114,18 @@
   }
   nav a:hover { color: var(--name); }
 
-  /* Printers don't paint background colours, so the dark theme would put white
-     text on white paper — the name and every bold phrase would vanish. Force an
-     ink-on-paper palette regardless of which theme is active, and drop the ocean.
-     The [data-theme] selectors are needed to outrank the light-theme block. */
+  /* Printers don't paint background colours, so the page's tan would drop out
+     and leave mid-brown text on white paper. Force a proper ink-on-paper
+     palette, and drop the ocean — it prints as grey smudge. */
   @media print {
-    :root,
-    :root[data-theme="dark"],
-    :root[data-theme="light"] {
+    :root {
       --bg: #ffffff;
       --fg: #000000;
       --name: #000000;
       --dim: #333333;
       --rule: #bbbbbb;
     }
-    #sea, #theme { display: none; }
+    #sea { display: none; }
     .wrap { width: 100%; max-width: 100%; padding: 0; }
     a { text-decoration-color: #999999; }
   }
@@ -179,8 +152,7 @@
 <div class="wrap">
 
   <div class="header">
-    <span class="name">Matthew Li</span>
-    <button id="theme" type="button" aria-label="Toggle color theme">light</button>
+    <span class="name">hi! i'm matthew</span>
   </div>
 
   <!-- ==========================================================================
@@ -258,33 +230,6 @@
 </div>
 
 <script>
-  (function () {
-    var root = document.documentElement;
-    var btn = document.getElementById("theme");
-
-    function stored() {
-      try { return localStorage.getItem("theme"); } catch (e) { return null; }
-    }
-
-    function apply(theme) {
-      root.setAttribute("data-theme", theme);
-      btn.textContent = theme === "dark" ? "light" : "dark";
-    }
-
-    // Light is the default look. The OS setting is deliberately not consulted —
-    // everyone lands on the tan page unless they've picked dark here before.
-    var saved = stored();
-    apply(saved || "light");
-
-    btn.addEventListener("click", function () {
-      var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-      apply(next);
-      try { localStorage.setItem("theme", next); } catch (e) {}
-    });
-  })();
-</script>
-
-<script>
   /* Ocean background: a waterline just under the name, a buoy riding it, and a
      hydrophone below sending pings out into the dark. A callback to MobyGlobal.
      Deliberately barely visible — the one knob is --sea-k in the CSS above. */
@@ -325,16 +270,11 @@
 
     var W = 0, H = 0, surfaceY = 0, maxR = 0;
     var rings = [], lastPing = 1200 - PING_MS, start = -1, raf = 0, pausedAt = 0;
-    var sea = "255, 255, 255", seaK = 1, seenTheme = null;
-
-    function readTheme() {
-      var th = root.getAttribute("data-theme") || "dark";
-      if (th === seenTheme) return;
-      seenTheme = th;
-      var cs = getComputedStyle(root);
-      sea = (cs.getPropertyValue("--sea") || "255, 255, 255").trim();
-      seaK = parseFloat(cs.getPropertyValue("--sea-k")) || 1;
-    }
+    // There is one palette, and nothing changes it at runtime, so read the two
+    // ink variables once rather than every frame.
+    var cs = getComputedStyle(root);
+    var sea = (cs.getPropertyValue("--sea") || "90, 78, 60").trim();
+    var seaK = parseFloat(cs.getPropertyValue("--sea-k")) || 1;
 
     function ink(a) { return "rgba(" + sea + ", " + (a * seaK) + ")"; }
 
@@ -452,7 +392,6 @@
     }
 
     function paint(t, moving) {
-      readTheme();
       ctx.clearRect(0, 0, W, H);
       ctx.lineWidth = 1;
 
@@ -498,13 +437,6 @@
 
     function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
     function go()   { if (!raf && !reduce.matches) raf = requestAnimationFrame(frame); }
-
-    // When the scene is static nothing repaints on its own, so the theme toggle
-    // needs an explicit nudge. Harmless while animating — the loop repaints anyway.
-    if (window.MutationObserver) {
-      new MutationObserver(function () { if (reduce.matches) still(); })
-        .observe(root, { attributes: true, attributeFilter: ["data-theme"] });
-    }
 
     measure();
     if (reduce.matches) still(); else go();

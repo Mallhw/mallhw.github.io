@@ -16,12 +16,11 @@ Where things are, top to bottom:
 
 | Line-ish | What |
 | --- | --- |
-| `<style>` → `:root` | **Colours.** Five variables per theme: `--bg`, `--fg`, `--name`, `--dim`, `--rule`, plus `--sea` / `--sea-k` for the animation |
+| `<style>` → `:root` | **Colours.** Five variables: `--bg`, `--fg`, `--name`, `--dim`, `--rule`, plus `--sea` / `--sea-k` for the animation |
 | `@media print` | print palette — see below |
 | `FONT DATA` markers | **Generated. Skip it.** One enormous base64 line |
 | `YOUR COPY STARTS HERE` | **The words.** One paragraph, then a `<ul>` of bullets, then the footer links |
-| first `<script>` | theme toggle — OS preference on a first visit, then remembers your choice |
-| second `<script>` | the background animation |
+| the `<script>` | the background animation |
 
 The copy is plain HTML. In practice you need `<strong>bold</strong>`, `<em>italic</em>`,
 `<a href="...">link</a>`, `<li>a bullet</li>`, `<hr>` for a divider, and `&mdash;` for an
@@ -76,9 +75,8 @@ below sending pings out into the dark — a callback to MobyGlobal. Drawn on a s
 
 **The one knob you'll actually want is `--sea-k`** in the `:root` blocks. It multiplies
 the opacity of everything in the scene. Raise it to make the ocean more visible, drop it
-toward `0` to make it disappear. It's set per theme — `1` for dark, `1.7` for light,
-because dark ink on a light page carries less contrast per unit alpha than white ink on
-a dark one.
+toward `0` to make it disappear. It sits at `1.7` because dark ink on a light page
+carries less contrast per unit alpha than the reverse would.
 
 Other constants, at the top of that script:
 
@@ -115,10 +113,9 @@ If `prefers-reduced-motion: reduce` is set, the scene renders one static frame a
 animates. It also listens for that setting *changing*, so turning Reduce Motion on stops
 the animation immediately rather than only on the next page load.
 
-Printing forces a black-on-white palette in a `@media print` block, regardless of which
-theme is on screen, and hides the ocean and the theme toggle. Without it, printing from the
-dark theme put white text on white paper — browsers don't print background colours, so the
-name and every bold phrase came out invisible.
+Printing forces a black-on-white palette in a `@media print` block and hides the ocean.
+Browsers don't print background colours, so without it the page's tan would drop out and
+leave mid-brown text on white paper — and the ocean would print as a grey smudge.
 
 ## Deploying
 
