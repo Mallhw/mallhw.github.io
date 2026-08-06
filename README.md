@@ -195,9 +195,66 @@ git commit -m "personal site"
 gh repo create Mallhw.github.io --public --source=. --push
 ```
 
-It goes live at `https://mallhw.github.io` within a minute or two. For a custom domain,
-buy it, add a `CNAME` file containing just the bare domain (e.g. `matthewli.com`), and
-point the domain's DNS at GitHub's Pages IPs.
+It goes live at `https://mallhw.github.io` within a minute or two.
+
+### The custom domain
+
+The site serves from **matthewli.org**. `mattyli.com` is also registered and redirects to
+it — GitHub Pages answers for exactly one custom domain, so the second one is handled by a
+redirect rule at Cloudflare rather than by anything in this repo.
+
+Two halves have to agree:
+
+1. The `CNAME` file at the repo root, containing the bare domain and nothing else. This
+   is what tells GitHub which host to answer for — it is the same setting as the "Custom
+   domain" box in the repo's Pages settings, just stored in the repo. **Don't delete it**;
+   a build without it silently reverts the site to `mallhw.github.io`.
+2. DNS at the registrar, pointing at GitHub's four Pages IPs:
+
+```
+A     @    185.199.108.153
+A     @    185.199.109.153
+A     @    185.199.110.153
+A     @    185.199.111.153
+CNAME www  mallhw.github.io
+```
+
+**Order matters.** Add the DNS records *first*. If the `CNAME` file lands before DNS
+resolves, GitHub starts redirecting `mallhw.github.io` to a domain that doesn't answer
+yet, and the site is unreachable until it propagates.
+
+**On Cloudflare, set those records to "DNS only" (grey cloud), not proxied (orange).**
+Proxying puts Cloudflare's certificate in front of GitHub's, and GitHub can't complete its
+own certificate check through the proxy — "Enforce HTTPS" stays greyed out and the domain
+can serve a redirect loop. You can turn the proxy on later, once GitHub has issued the
+certificate, if you actually want it.
+
+Once DNS resolves, tick **Enforce HTTPS** in the repo's Pages settings. GitHub issues a
+Let's Encrypt certificate automatically, usually within about 15 minutes. `mallhw.github.io`
+keeps working and redirects to the custom domain.
+
+### Pointing mattyli.com at it
+
+The second domain is not in this repo at all — GitHub only answers for the one in `CNAME`.
+It redirects at Cloudflare instead, which needs two pieces:
+
+1. In **mattyli.com → DNS**, an `A` record for `@` pointing at `192.0.2.1`, and the same
+   for `www`. That address is the reserved documentation-only IP; nothing is ever hosted
+   there, and nothing needs to be. It exists only to give Cloudflare a record to attach
+   the rule to.
+2. In **mattyli.com → Rules → Redirect Rules**, a rule matching `hostname` contains
+   `mattyli.com`, with a *dynamic* target of
+   `concat("https://matthewli.org", http.request.uri.path)`, status **301**, preserve
+   query string on.
+
+**These two records must be Proxied (orange cloud) — the opposite of matthewli.org's.**
+Redirect rules only run on traffic that passes through Cloudflare, so a grey-cloud record
+here means the rule never fires and the domain just fails to load. Getting these two
+domains backwards is the easiest mistake to make: the one serving the site is grey, the
+one redirecting is orange.
+
+Using the path in the target rather than a plain URL means `mattyli.com/anything` lands on
+`matthewli.org/anything` instead of dumping every visitor on the homepage.
 
 **Netlify** — drag the folder onto <https://app.netlify.com/drop>. No account needed to
 start.
