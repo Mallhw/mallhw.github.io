@@ -58,30 +58,87 @@
   .wrap {
     position: relative;
     z-index: 1;
-    /* 576px minus the 28px gutters leaves a 520px text column, which in Karla
-       is ~75 characters a line — the top of the comfortable range, and the
-       measure the typeface was actually chosen at. The old 770px cap was sized
-       for a monospace; Karla is narrower per character, so the same box would
-       run 93-103 characters and read as a wall. */
-    width: min(90vw, 576px);
+    /* 1012px = 520 text + 56 gap + 380 photo + the two 28px gutters. The TEXT
+       column is still exactly 520px, which in Karla is ~75 characters a line —
+       the measure the typeface was actually chosen at in the comparison
+       tournament. The page got wider to make room for the photo panel, not to
+       widen the prose; widening the prose would undo that measure. */
+    width: min(92vw, 1012px);
     min-width: 320px;
     margin: 0 auto;
     padding: 64px 28px 48px;
   }
 
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-  }
+  /* The canvas anchors the waterline to this element's bottom edge, so its
+     height and margin decide where the sea sits. */
+  .header { margin-bottom: 44px; }
 
   .name {
     color: var(--name);
-    font-size: 25.4px;
+    /* Display size. Two things have to change together at this scale: the
+       tracking tightens, because default spacing reads loose on large text, and
+       the line-height drops off the body's 1.8 — at 54px that would build a
+       97px line box and shove the waterline halfway down the page. */
+    font-size: clamp(32px, 6vw, 54px);
     font-weight: 500;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
   }
+
+  /* Prose left, photo right. The photo column is a fixed 380px so the text
+     column keeps its exact 520px measure at every width above the breakpoint —
+     a fractional split would stretch the prose on wide screens. */
+  .cols {
+    display: grid;
+    grid-template-columns: 520px 380px;
+    gap: 56px;
+    align-items: start;
+  }
+
+  /* Sticky so the photo stays in view while the bullet list scrolls past it. */
+  .photos { position: sticky; top: 40px; }
+
+  /* Fixed frame, image contained inside it. The photos are not all the same
+     shape — two portraits and one landscape — so cropping them to a shared
+     aspect ratio would slice the sides off the landscape one. A fixed-height box
+     with a contained image crops nothing, and because the box height is fixed
+     the caption underneath never jumps when the photo swaps. */
+  .photo-frame {
+    /* Capped at 460 rather than filling the column: the frame height is what a
+       landscape photo has to sit centred inside, so a taller frame just buys a
+       bigger dead gap between that photo and its caption. 460 keeps the
+       portraits large while holding that gap to about 100px. */
+    height: clamp(300px, 52vh, 460px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .photo-frame img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    border-radius: 6px;
+    transition: opacity 0.15s ease;
+  }
+
+  .caption {
+    color: var(--dim);
+    font-size: 12.7px;
+    line-height: 1.5;
+    text-align: center;
+    margin: 14px 0 0;
+  }
+
+  /* A word that swaps the photo but has nowhere to navigate to. Dotted, so it
+     reads as interactive without impersonating a real link's solid underline. */
+  .ph {
+    cursor: pointer;
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    text-decoration-color: var(--dim);
+  }
+  .ph:hover { text-decoration-color: var(--name); }
 
   p { margin-bottom: 22px; }
 
@@ -114,6 +171,21 @@
   }
   nav a:hover { color: var(--name); }
 
+  /* One column below this width. The photo moves to the top rather than being
+     orphaned at the bottom of the page — greeting, face, then the writing. The
+     frame stops being a fixed height here because there is no second column to
+     stay aligned with, so the image can just take the room it needs.
+
+     1100px is not a taste call: the grid above is rigid at 520 + 56 + 380, so it
+     needs the full 1012px cap, and 1012/0.92 is 1100. Break any lower and the
+     columns push past the right edge of the window. */
+  @media (max-width: 1100px) {
+    .cols { grid-template-columns: 1fr; gap: 32px; }
+    .photos { position: static; order: -1; }
+    .photo-frame { height: auto; }
+    .photo-frame img { max-height: 62vh; }
+  }
+
   /* Printers don't paint background colours, so the page's tan would drop out
      and leave mid-brown text on white paper. Force a proper ink-on-paper
      palette, and drop the ocean — it prints as grey smudge. */
@@ -127,6 +199,9 @@
     }
     #sea { display: none; }
     .wrap { width: 100%; max-width: 100%; padding: 0; }
+    /* The photo panel is a hover toy; on paper it is just a wasted half-page. */
+    .photos { display: none; }
+    .cols { display: block; }
     a { text-decoration-color: #999999; }
   }
 
@@ -152,8 +227,11 @@
 <div class="wrap">
 
   <div class="header">
-    <span class="name">hi! i'm matthew</span>
+    <h1 class="name" id="greeting">hi, i'm matthew!</h1>
   </div>
+
+  <div class="cols">
+  <div class="col-text">
 
   <!-- ==========================================================================
        YOUR COPY STARTS HERE. All of this is yours to rewrite.
@@ -181,7 +259,11 @@
 
   <ul>
     <li>
-      built 3d printed buoys that track endangered whales
+      built 3d printed <span class="ph"
+        data-hover-img="img/buoy.jpg"
+        data-hover-caption="buoy tested next to unsuspecting kid swimming class"
+        data-hover-alt="a 3d printed solar buoy floating in clear turquoise water"
+        >buoys</span> that track endangered whales
       (Published @ <a href="https://agu.confex.com/agu/OSM26/meetingapp.cgi"><strong>OSM</strong></a>,
       4th &amp; Special @ <a href="https://isef.net/project/robo046t-mobyglobal-a-real-time-whale-detection-network"><strong>ISEF</strong></a>,
       Patent)
@@ -192,7 +274,11 @@
       <strong>Lockheed Martin HSPC</strong>, AIME qualifier
     </li>
     <li>
-      ran <a href="https://www.academies-it.org/"><strong>Academies-IT</strong></a>, the
+      ran <a href="https://www.academies-it.org/"
+        data-hover-img="img/academies.jpg"
+        data-hover-caption="pizza eating competition w some coding on the side"
+        data-hover-alt="a school atrium full of students competing at laptops"
+        ><strong>Academies-IT</strong></a>, the
       county's largest competitive programming tournament &mdash; $3,000 in sponsorships and
       120+ attendees
     </li>
@@ -224,6 +310,22 @@
     <a href="https://github.com/Mallhw">github</a>
     <a href="https://www.linkedin.com/in/matthew-li-a49516258/">linkedin</a>
   </nav>
+
+  </div><!-- /.col-text -->
+
+  <!-- The photo panel. This one <img> is the only photo element on the page —
+       hovering a marked-up word swaps its src and the caption below it. To add a
+       photo: drop the file in img/, then put data-hover-img and
+       data-hover-caption on any word in the copy above. Nothing else to wire up.
+       Hovering the greeting brings this default photo back. -->
+  <aside class="photos">
+    <div class="photo-frame">
+      <img id="photo" src="img/beach.jpg" alt="matthew on a beach at sunset">
+    </div>
+    <p class="caption" id="photo-caption">lizzo meme on full display</p>
+  </aside>
+
+  </div><!-- /.cols -->
 
   <!-- ===== END OF YOUR COPY. Below is the background animation. ============= -->
 
@@ -268,7 +370,7 @@
     var TIDE_AMP = 5;
     var TIDE_W = 0.0000698;   // ~90s for one full rise and fall
 
-    var W = 0, H = 0, surfaceY = 0, maxR = 0;
+    var W = 0, H = 0, surfaceY = 0, maxR = 0, buoyX = 0;
     var rings = [], lastPing = 1200 - PING_MS, start = -1, raf = 0, pausedAt = 0;
     // There is one palette, and nothing changes it at runtime, so read the two
     // ink variables once rather than every frame.
@@ -292,6 +394,17 @@
       var head = document.querySelector(".header");
       var r = head && head.getBoundingClientRect();
       surfaceY = (r && r.height) ? r.bottom + window.scrollY + 13 : H * 0.22;
+
+      // Keep the buoy in the left margin, beside the text rather than on top of
+      // it. This is measured off the content column, not off the viewport: at a
+      // fraction of the window width the buoy drifts into the copy on mid-size
+      // screens, because the column stops widening at 1012px but the window
+      // doesn't. On narrow screens the column fills the window and the clamp
+      // takes over, which is the same overlap the page has always had there.
+      var wrap = document.querySelector(".wrap");
+      var wr = wrap && wrap.getBoundingClientRect();
+      buoyX = wr ? Math.max(28, Math.min(wr.left - 56, 360))
+                 : Math.max(48, Math.min(W * 0.12, 220));
     }
 
     function waveAt(x, t, dy, ph) {
@@ -310,7 +423,7 @@
     }
 
     function drawBuoy(t) {
-      var bx = Math.max(48, Math.min(W * 0.12, 220));
+      var bx = buoyX;
       var by = waveAt(bx, t, 0, 0);
       // Tilt with the local slope of the water, scaled down so the lean is
       // suggested rather than literal.
@@ -467,6 +580,89 @@
     if (reduce.addEventListener) reduce.addEventListener("change", onReduceChange);
     else if (reduce.addListener) reduce.addListener(onReduceChange);   // Safari < 14
   })();
+</script>
+
+<!-- ===== PHOTO SWAP =======================================================
+     Hovering a word carrying data-hover-img swaps the photo panel to that
+     image, and the photo then stays — it does not snap back when the pointer
+     leaves. Reverting on mouseleave makes the panel flicker while you read down
+     the list. Hovering the greeting is the way back to the default photo.
+     ======================================================================== -->
+<script>
+(function () {
+  var img = document.getElementById("photo");
+  var cap = document.getElementById("photo-caption");
+  if (!img || !cap) return;
+
+  var defaultSrc = img.getAttribute("src");
+  var defaultAlt = img.getAttribute("alt");
+  var defaultCap = cap.textContent;
+  var shown = defaultSrc;
+  var timer = 0;
+
+  var triggers = document.querySelectorAll("[data-hover-img]");
+
+  // Decode every other photo up front. Without this the first hover on each one
+  // shows an empty frame for as long as the file takes to arrive.
+  for (var i = 0; i < triggers.length; i++) {
+    new Image().src = triggers[i].getAttribute("data-hover-img");
+  }
+
+  // Someone who asked not to be shown animation gets the swap, just not the
+  // crossfade.
+  var still = window.matchMedia
+    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function show(src, caption, alt) {
+    if (src === shown) return;   // re-entering the same word must not re-flash
+    shown = src;
+    clearTimeout(timer);
+    if (still) {
+      img.src = src; img.alt = alt; cap.textContent = caption;
+      return;
+    }
+    img.style.opacity = 0;
+    timer = setTimeout(function () {
+      img.src = src;
+      img.alt = alt;
+      cap.textContent = caption;
+      img.style.opacity = 1;
+    }, 150);
+  }
+
+  function showFrom(el) {
+    show(el.getAttribute("data-hover-img"),
+         el.getAttribute("data-hover-caption") || "",
+         el.getAttribute("data-hover-alt") || "");
+  }
+
+  var canHover = !window.matchMedia
+    || window.matchMedia("(hover: hover)").matches;
+
+  for (var j = 0; j < triggers.length; j++) {
+    (function (el) {
+      el.addEventListener("mouseenter", function () { showFrom(el); });
+      // On a touch screen there is no hover, so a tap has to do the job. Only
+      // for the non-link triggers: a tap on a real link must still follow it,
+      // otherwise the Academies-IT link would be dead on a phone.
+      if (!canHover && el.tagName !== "A") {
+        el.addEventListener("click", function () { showFrom(el); });
+      }
+    })(triggers[j]);
+  }
+
+  var greeting = document.getElementById("greeting");
+  if (greeting) {
+    greeting.addEventListener("mouseenter", function () {
+      show(defaultSrc, defaultCap, defaultAlt);
+    });
+    if (!canHover) {
+      greeting.addEventListener("click", function () {
+        show(defaultSrc, defaultCap, defaultAlt);
+      });
+    }
+  }
+})();
 </script>
 </body>
 </html>
