@@ -66,12 +66,14 @@
   .wrap {
     position: relative;
     z-index: 1;
-    /* 1012px = 520 text + 56 gap + 380 photo + the two 28px gutters. The TEXT
+    /* 1034px = 520 text + 78 gap + 380 photo + the two 28px gutters. The TEXT
        column is still exactly 520px, which in Karla is ~75 characters a line —
        the measure the typeface was actually chosen at in the comparison
        tournament. The page got wider to make room for the photo panel, not to
-       widen the prose; widening the prose would undo that measure. */
-    width: min(92vw, 1012px);
+       widen the prose; widening the prose would undo that measure. The extra
+       22px over the original 1012 is the wider gap, so pushing the photo further
+       from the text costs the page width rather than costing the text. */
+    width: min(92vw, 1034px);
     min-width: 320px;
     margin: 0 auto;
     padding: 64px 28px 48px;
@@ -99,12 +101,16 @@
   .cols {
     display: grid;
     grid-template-columns: 520px 380px;
-    gap: 56px;
+    gap: 78px;
     align-items: start;
   }
 
-  /* Sticky so the photo stays in view while the bullet list scrolls past it. */
-  .photos { position: sticky; top: 40px; }
+  /* Sticky so the photo stays in view while the bullet list scrolls past it.
+     The top margin drops it below the first line of prose rather than aligning
+     flush with it — the flush version read as cramped against the text. It is a
+     margin rather than a change to `top`, so the offset applies where you see it
+     on arrival and does not add a permanent gap once the panel sticks. */
+  .photos { position: sticky; top: 40px; margin-top: 30px; }
 
   /* Fixed frame, image contained inside it. The photos are not all the same
      shape — two portraits and one landscape — so cropping them to a shared
@@ -184,12 +190,13 @@
      frame stops being a fixed height here because there is no second column to
      stay aligned with, so the image can just take the room it needs.
 
-     1100px is not a taste call: the grid above is rigid at 520 + 56 + 380, so it
-     needs the full 1012px cap, and 1012/0.92 is 1100. Break any lower and the
-     columns push past the right edge of the window. */
-  @media (max-width: 1100px) {
+     1124px is not a taste call: the grid above is rigid at 520 + 78 + 380, so it
+     needs the full 1034px cap, and 1034/0.92 is 1124. Break any lower and the
+     columns push past the right edge of the window. Widening the gap moved this
+     number — the two have to be changed together. */
+  @media (max-width: 1124px) {
     .cols { grid-template-columns: 1fr; gap: 32px; }
-    .photos { position: static; order: -1; }
+    .photos { position: static; order: -1; margin-top: 0; }
     .photo-frame { height: auto; }
     .photo-frame img { max-height: 62vh; }
   }
