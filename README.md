@@ -199,7 +199,11 @@ It goes live at `https://mallhw.github.io` within a minute or two.
 
 ### The custom domain
 
-The site serves from **mattyli.com**. Two halves have to agree:
+The site serves from **matthewli.org**. `mattyli.com` is also registered and redirects to
+it — GitHub Pages answers for exactly one custom domain, so the second one is handled by a
+redirect rule at Cloudflare rather than by anything in this repo.
+
+Two halves have to agree:
 
 1. The `CNAME` file at the repo root, containing the bare domain and nothing else. This
    is what tells GitHub which host to answer for — it is the same setting as the "Custom
@@ -228,6 +232,29 @@ certificate, if you actually want it.
 Once DNS resolves, tick **Enforce HTTPS** in the repo's Pages settings. GitHub issues a
 Let's Encrypt certificate automatically, usually within about 15 minutes. `mallhw.github.io`
 keeps working and redirects to the custom domain.
+
+### Pointing mattyli.com at it
+
+The second domain is not in this repo at all — GitHub only answers for the one in `CNAME`.
+It redirects at Cloudflare instead, which needs two pieces:
+
+1. In **mattyli.com → DNS**, an `A` record for `@` pointing at `192.0.2.1`, and the same
+   for `www`. That address is the reserved documentation-only IP; nothing is ever hosted
+   there, and nothing needs to be. It exists only to give Cloudflare a record to attach
+   the rule to.
+2. In **mattyli.com → Rules → Redirect Rules**, a rule matching `hostname` contains
+   `mattyli.com`, with a *dynamic* target of
+   `concat("https://matthewli.org", http.request.uri.path)`, status **301**, preserve
+   query string on.
+
+**These two records must be Proxied (orange cloud) — the opposite of matthewli.org's.**
+Redirect rules only run on traffic that passes through Cloudflare, so a grey-cloud record
+here means the rule never fires and the domain just fails to load. Getting these two
+domains backwards is the easiest mistake to make: the one serving the site is grey, the
+one redirecting is orange.
+
+Using the path in the target rather than a plain URL means `mattyli.com/anything` lands on
+`matthewli.org/anything` instead of dumping every visitor on the homepage.
 
 **Netlify** — drag the folder onto <https://app.netlify.com/drop>. No account needed to
 start.
