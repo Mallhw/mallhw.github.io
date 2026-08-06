@@ -102,15 +102,17 @@
     display: grid;
     grid-template-columns: 520px 380px;
     gap: 78px;
-    align-items: start;
+    /* Centre the photo against the full height of the text rather than hanging
+       it from the top. This replaces an earlier fixed 30px nudge, which only
+       worked for one photo height — centring holds for all of them, since the
+       panel gets shorter with a landscape shot and taller with a portrait. */
+    align-items: center;
   }
 
   /* Sticky so the photo stays in view while the bullet list scrolls past it.
-     The top margin drops it below the first line of prose rather than aligning
-     flush with it — the flush version read as cramped against the text. It is a
-     margin rather than a change to `top`, so the offset applies where you see it
-     on arrival and does not add a permanent gap once the panel sticks. */
-  .photos { position: sticky; top: 40px; margin-top: 30px; }
+     No top margin: the grid centres it now, and a margin would just pull it
+     back off centre by a fixed amount. */
+  .photos { position: sticky; top: 40px; }
 
   /* The frame takes the height of whatever photo is in it, so the caption sits
      directly under the image rather than at a fixed distance from the top.
@@ -202,7 +204,7 @@
      number — the two have to be changed together. */
   @media (max-width: 1124px) {
     .cols { grid-template-columns: 1fr; gap: 32px; }
-    .photos { position: static; order: -1; margin-top: 0; }
+    .photos { position: static; order: -1; }
     /* One column, so the photo can be taller than the desktop cap allows. */
     .photo-frame img { max-height: 62vh; }
   }
