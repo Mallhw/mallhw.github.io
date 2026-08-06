@@ -70,22 +70,31 @@ aborts rather than guessing if the markers are missing.
 
 ## The favicon
 
-A whale fluke on a dark disc — a nod to MobyGlobal — written as an SVG data URI in the
-`<link rel="icon">` tag rather than an `.ico` file. That keeps the page's zero-network-
-request property, stays sharp at any size instead of pixelating on a retina tab strip, and
-still works over `file://`.
+Matthew's own pencil sketch of a smiley face, inlined as a PNG data URI in the
+`<link rel="icon">` tag rather than kept as an `.ico` file. That keeps the page's
+zero-network-request property and still works over `file://`.
 
-Two things about it are deliberate:
+Every stroke in it is from the drawing. Three things were changed, none of which touch
+the shape of a line:
 
-- **The disc is dark, not tan.** A tan tile is nearly invisible against a light browser
-  tab — it was the clear loser once the candidates were rendered *in* a tab rather than on
-  their own. Dark reads on light and dark chrome alike.
-- **It's a circle.** Almost every favicon is a rounded square, so a round one is easier to
-  pick out of a strip of tabs at a size where no detail survives.
+- **The marks were re-placed.** In the original they sit in the corners of a mostly-empty
+  page — the drawn content filled 61% of the width and 36% of the height, and 0.37% of the
+  pixels carried any ink at all. At 16px that is a blank tile. The three marks (two eyes,
+  one mouth) were segmented out by connected components and laid out on a tighter grid.
+- **The line was thickened.** A 1px pencil stroke is 0.07px at favicon scale — a
+  fourteenth of one device pixel. Dilating at high resolution and downsampling once keeps
+  the line soft and organic instead of turning it into a hard vector stroke.
+- **The colour is a warm mid-tone, not the page's near-black.** With no tile behind it, one
+  colour has to survive a white tab strip *and* a dark one. Ink scores 18:1 on white but
+  1.4:1 on dark — invisible. The mid-tone gives 3.99:1 and 3.03:1, both past the 3:1 that
+  non-text graphics need.
 
-To change it, edit the two `<path d="...">` shapes inside the tag. Only `<`, `>` and `#`
-need percent-encoding (`%3C`, `%3E`, `%23`), which is why the markup uses single quotes —
-double quotes would terminate the `href` early.
+The uneven eyes and the wobble in the smile are the drawing's, not an effect — that is
+what makes it read as drawn rather than constructed.
+
+To change it, redraw and regenerate: crop to the marks, thicken, recolour, inline the
+base64. Keep the transparent background, and re-check contrast against both tab colours if
+you change the colour.
 
 ## The photos
 
