@@ -112,24 +112,30 @@
      on arrival and does not add a permanent gap once the panel sticks. */
   .photos { position: sticky; top: 40px; margin-top: 30px; }
 
-  /* Fixed frame, image contained inside it. The photos are not all the same
-     shape — two portraits and one landscape — so cropping them to a shared
-     aspect ratio would slice the sides off the landscape one. A fixed-height box
-     with a contained image crops nothing, and because the box height is fixed
-     the caption underneath never jumps when the photo swaps. */
+  /* The frame takes the height of whatever photo is in it, so the caption sits
+     directly under the image rather than at a fixed distance from the top.
+
+     This is a deliberate reversal. The frame used to be a fixed height with the
+     photo centred inside, which kept the caption from moving when you hover a
+     different word — but it also meant a landscape photo floated in the middle
+     of a tall box with ~100px of dead space between it and its own caption.
+     Hugging the image is the better trade: the caption now moves vertically on
+     swap, but it always reads as belonging to the picture above it.
+
+     The photos are still never cropped. They differ in shape — two portraits and
+     one landscape — and cropping them to a shared aspect ratio would slice the
+     sides off the landscape one. */
   .photo-frame {
-    /* Capped at 460 rather than filling the column: the frame height is what a
-       landscape photo has to sit centred inside, so a taller frame just buys a
-       bigger dead gap between that photo and its caption. 460 keeps the
-       portraits large while holding that gap to about 100px. */
-    height: clamp(300px, 52vh, 460px);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
   }
   .photo-frame img {
     max-width: 100%;
-    max-height: 100%;
+    /* Caps how tall a portrait gets. Without it a 380px-wide portrait runs to
+       ~570px and towers over the landscape shots, which makes the caption's
+       travel between them far more noticeable than it needs to be. */
+    max-height: min(440px, 52vh);
     width: auto;
     height: auto;
     border-radius: 6px;
@@ -197,7 +203,7 @@
   @media (max-width: 1124px) {
     .cols { grid-template-columns: 1fr; gap: 32px; }
     .photos { position: static; order: -1; margin-top: 0; }
-    .photo-frame { height: auto; }
+    /* One column, so the photo can be taller than the desktop cap allows. */
     .photo-frame img { max-height: 62vh; }
   }
 
