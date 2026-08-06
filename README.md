@@ -20,6 +20,7 @@ Where things are, top to bottom:
 | `@media print` | print palette — see below |
 | `FONT DATA` markers | **Generated. Skip it.** One enormous base64 line |
 | `YOUR COPY STARTS HERE` | **The words.** One paragraph, then a `<ul>` of bullets, then the footer links |
+| `<link rel="icon">` | **The favicon**, an inline SVG — see below |
 | `PHOTO SWAP` marker | the hover-a-word-to-change-the-photo script — see below |
 | the first `<script>` | the background animation |
 
@@ -66,6 +67,25 @@ python3 build/regen-fonts.py
 range (`"300 600"`); a static family is one entry per weight. That script rewrites
 **only** the region between those two markers — it cannot overwrite your copy, and it
 aborts rather than guessing if the markers are missing.
+
+## The favicon
+
+A whale fluke on a dark disc — a nod to MobyGlobal — written as an SVG data URI in the
+`<link rel="icon">` tag rather than an `.ico` file. That keeps the page's zero-network-
+request property, stays sharp at any size instead of pixelating on a retina tab strip, and
+still works over `file://`.
+
+Two things about it are deliberate:
+
+- **The disc is dark, not tan.** A tan tile is nearly invisible against a light browser
+  tab — it was the clear loser once the candidates were rendered *in* a tab rather than on
+  their own. Dark reads on light and dark chrome alike.
+- **It's a circle.** Almost every favicon is a rounded square, so a round one is easier to
+  pick out of a strip of tabs at a size where no detail survives.
+
+To change it, edit the two `<path d="...">` shapes inside the tag. Only `<`, `>` and `#`
+need percent-encoding (`%3C`, `%3E`, `%23`), which is why the markup uses single quotes —
+double quotes would terminate the `href` early.
 
 ## The photos
 
