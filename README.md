@@ -20,7 +20,8 @@ Where things are, top to bottom:
 | `@media print` | print palette — see below |
 | `FONT DATA` markers | **Generated. Skip it.** One enormous base64 line |
 | `YOUR COPY STARTS HERE` | **The words.** One paragraph, then a `<ul>` of bullets, then the footer links |
-| the `<script>` | the background animation |
+| `PHOTO SWAP` marker | the hover-a-word-to-change-the-photo script — see below |
+| the first `<script>` | the background animation |
 
 The copy is plain HTML. In practice you need `<strong>bold</strong>`, `<em>italic</em>`,
 `<a href="...">link</a>`, `<li>a bullet</li>`, `<hr>` for a divider, and `&mdash;` for an
@@ -45,7 +46,7 @@ and should move together:
 | --- | --- | --- |
 | `body` font-size | `14.8px` | a proportional face reads smaller than a monospace at the same pixel size; this is the equivalent of the old 14px mono |
 | `body` line-height | `1.8` | mono needs the extra air that `2` gave it, Karla doesn't |
-| `.wrap` width | `min(90vw, 576px)` | 576 minus the 28px gutters leaves a 520px column ≈ 75 characters a line |
+| `.wrap` width | `min(92vw, 1012px)` | 1012 = 520 text + 56 gap + 380 photo + the two 28px gutters. The **text** column is still 520px ≈ 75 characters a line |
 
 That last one matters most. The previous 770px cap was sized for a monospace at ~85
 characters a line. Karla is narrower per character, so the *same box* would run 93-103
@@ -66,12 +67,74 @@ range (`"300 600"`); a static family is one entry per weight. That script rewrit
 **only** the region between those two markers — it cannot overwrite your copy, and it
 aborts rather than guessing if the markers are missing.
 
+## The photos
+
+The right-hand column holds **one** `<img>`. Hovering a marked-up word in the copy swaps
+that image's `src` and the caption under it. The photo then **stays** — it does not snap
+back when the pointer leaves, because reverting makes the panel flicker while you read
+down the list. Hovering the greeting is the way back to the default photo.
+
+### Adding one
+
+1. Put the file in `img/`.
+2. Add two attributes to any word in the copy — a `<span class="ph">` if it has nowhere to
+   link, or straight onto an existing `<a>` if it does:
+
+```html
+<span class="ph"
+  data-hover-img="img/whatever.jpg"
+  data-hover-caption="the funny bit"
+  data-hover-alt="what the photo shows, for screen readers"
+  >the word</span>
+```
+
+That's the whole wiring. The script finds every `[data-hover-img]` on the page, so there
+is no list to keep in sync, and it preloads each one at startup so the first hover doesn't
+flash an empty frame.
+
+The default photo and its caption are whatever is written into the `<img id="photo">` and
+`<p id="photo-caption">` in the markup.
+
+`.ph` is styled with a **dotted** underline on purpose — it signals "this does something"
+without impersonating a real link's solid underline. Real links that are also photo
+triggers keep their normal underline and still navigate when clicked.
+
+### Sizing
+
+Photos do not have to share a shape. The frame is a fixed height with the image
+*contained* inside it rather than cropped to a common aspect ratio, so a landscape photo
+keeps its sides instead of being sliced to match the portraits — and because the frame
+height is fixed, the caption never jumps when the photo changes. The cost is some empty
+space around a photo whose shape differs a lot from the frame's.
+
+Keep files to roughly 150KB. `sips` is enough:
+
+```bash
+sips -Z 1040 -s format jpeg -s formatOptions 65 original.jpg --out img/name.jpg
+```
+
+`-Z` bounds the longest side. 1040 is about right for a portrait (2× the tallest the frame
+ever gets); use `-Z 780` for a landscape, which is 2× the column width.
+
+### On phones
+
+Below 1100px the layout is one column and the photo moves directly under the greeting.
+There is no hover on a touch screen, so tapping a `<span>` trigger swaps the photo
+instead. Taps on real links still follow the link — otherwise the Academies-IT link would
+be dead on a phone.
+
 ## The background animation
 
 A waterline sits just below your name, with a buoy riding it and a hydrophone hanging
 below sending pings out into the dark — a callback to MobyGlobal. Drawn on a single
-`<canvas>` fixed behind the text, in about 120 lines of plain JS in the second
+`<canvas>` fixed behind the text, in about 120 lines of plain JS in the first
 `<script>`. No library, no external request, so it still works over `file://`.
+
+Two things are measured off the DOM in `measure()`, which re-runs on resize: the waterline
+sits 13px under `.header`, so it follows the greeting whatever size that is; and the buoy
+sits 56px to the left of `.wrap`, so it stays in the margin instead of drifting into the
+copy. Both used to be fractions of the window, which broke once the page had a fixed
+1012px content column — the window keeps growing and the column doesn't.
 
 **The one knob you'll actually want is `--sea-k`** in the `:root` blocks. It multiplies
 the opacity of everything in the scene. Raise it to make the ocean more visible, drop it
@@ -113,9 +176,11 @@ If `prefers-reduced-motion: reduce` is set, the scene renders one static frame a
 animates. It also listens for that setting *changing*, so turning Reduce Motion on stops
 the animation immediately rather than only on the next page load.
 
-Printing forces a black-on-white palette in a `@media print` block and hides the ocean.
-Browsers don't print background colours, so without it the page's tan would drop out and
-leave mid-brown text on white paper — and the ocean would print as a grey smudge.
+Printing forces a black-on-white palette in a `@media print` block and hides the ocean and
+the photo panel. Browsers don't print background colours, so without it the page's tan
+would drop out and leave mid-brown text on white paper — and the ocean would print as a
+grey smudge. The photo panel is a hover toy; on paper it is a wasted half-page, so the
+columns collapse and the text runs full width. It comes out as one page.
 
 ## Deploying
 
