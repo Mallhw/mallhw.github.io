@@ -152,6 +152,74 @@ There is no hover on a touch screen, so tapping a `<span>` trigger swaps the pho
 instead. Taps on real links still follow the link — otherwise the Academies-IT link would
 be dead on a phone.
 
+## The globe
+
+`globe.html` is a second page, linked from **travelling** in the list on the homepage. It
+draws a spinning globe of the countries you've been to; clicking one stops the spin,
+dissolves the globe into that country's outline, and opens a stack of photos beside it that
+turn like pages when clicked.
+
+### Adding a country
+
+One table at the top of `globe.html`, and nothing else:
+
+```js
+var VISITED = {
+  Bulgaria: {
+    photos: [
+      { img: "img/teamusa.jpg",
+        caption: "2 AM in sofia with top tier schwarma",
+        alt: "the USA squad out at night in front of a christmas tree" }
+    ]
+  }
+};
+```
+
+The key must match the map data's name. If it doesn't, the console tells you so at load —
+a country that silently fails to colour in is the sort of thing you don't notice for a
+year. A country with no `photos` still colours in and still opens; it just says there are
+no photos yet.
+
+**Somewhere too small to have a shape** — Singapore, Monaco, Vatican City, Andorra,
+Liechtenstein — gets a pin instead:
+
+```js
+Singapore: { pin: [103.82, 1.35], photos: [] },
+```
+
+That draws a clickable marker at those coordinates. Pins are checked before shapes when
+you click, so a marker always beats the country underneath it.
+
+### Why the data is the size it is
+
+The obvious way to build this is to fetch the country outlines from a CDN at page load,
+which is what most globes do. That would cost 862KB over the wire, put a third-party host
+on the critical path, and break the page over `file://` — a `fetch()` of a local file is
+blocked by CORS. So the geometry is inlined as a JS literal instead, quantised to 2 decimal
+places (~1.1km, well under a pixel at this size).
+
+It is built from **two** Natural Earth sets, because the 1:110m one that's the right weight
+for a globe drops every country under a few hundred square kilometres — Aruba, Malta, Cabo
+Verde. A travel globe that can't show the trip you took is broken. So 110m is taken whole
+and 50m is spliced in for what's missing, filtered **geographically, not by name**: a 50m
+unit earns its place only if its own centre falls outside every shape 110m already draws.
+That admits Aruba, which 110m thinks is open water, and rejects Wallonia, which sits inside
+a Belgium that's already there — adding that would stack two countries on the same ground
+and make clicking a coin toss. 183 countries become 253 for about 28KB.
+
+Regenerate with:
+
+```sh
+python3 build/regen-countries.py                      # fetches both sources
+python3 build/regen-countries.py 110m.json 50m.json   # uses local copies
+```
+
+It rewrites only the region between the two `COUNTRY DATA` markers, aborts if they're
+missing, and refuses to write at all if fewer than 150 countries survive processing —
+otherwise a bad download would quietly replace the whole map with an empty array.
+
+Natural Earth is public domain: "No permission is needed to use Natural Earth."
+
 ## The background animation
 
 A waterline sits just below your name, with a buoy riding it and a hydrophone hanging
