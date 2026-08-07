@@ -190,6 +190,17 @@ Singapore: { pin: [103.82, 1.35], photos: [] },
 That draws a clickable marker at those coordinates. Pins are checked before shapes when
 you click, so a marker always beats the country underneath it.
 
+### Zooming
+
+Three ways, one per input: **ctrl-scroll** with a mouse (a bare scroll is left to the
+page on purpose — a globe that eats plain scrolling traps you above the list below it),
+**two-finger pinch** on touch (a trackpad pinch arrives as ctrl-scroll and just works),
+and the **+ / − buttons** on the orb, which are also the keyboard route. Zoom anchors to
+the pointer, drag slows proportionally so it feels like holding the surface, and
+selecting a country flies the zoom back home to 1× — the outline view has its own
+framing. Limits are 1× to 8×; at 8× one degree is ~35px and the data quantises at
+0.01°, so nothing gets blurry before the cap.
+
 ### Why the data is the size it is
 
 The obvious way to build this is to fetch the country outlines from a CDN at page load,

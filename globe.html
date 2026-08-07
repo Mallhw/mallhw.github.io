@@ -98,7 +98,41 @@
     cursor: grab;
   }
   .orb.dragging { cursor: grabbing; }
+  /* Focus lands here programmatically (closing the panel) and needs showing —
+     but the browser default is a blue ring that belongs to no palette. */
+  .orb:focus { outline: none; }
+  .orb:focus-visible { outline: 2px solid var(--visited); outline-offset: 4px; }
   .orb canvas { display: block; width: 100%; height: 100%; }
+
+  /* Bottom-right of the orb's square, which the circular globe leaves empty.
+     The orb's pointer handlers ignore anything starting here — otherwise a tap
+     on a button would fall through to the click-a-country path. */
+  .zoom {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 2;
+  }
+  .zoombtn {
+    width: 30px;
+    height: 30px;
+    border: 1px solid var(--rule);
+    border-radius: 7px;
+    background: var(--bg);
+    color: var(--name);
+    font: inherit;
+    font-size: 17px;
+    line-height: 1;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+  }
+  .zoombtn:hover:not(:disabled) { border-color: var(--dim); }
+  .zoombtn:focus-visible { outline: 2px solid var(--visited); outline-offset: 2px; }
+  .zoombtn:disabled { opacity: 0.35; cursor: default; }
 
   .orb-label {
     color: var(--name);
@@ -308,7 +342,7 @@
 
   <a class="back" href="index.html">&larr; matthew li</a>
   <h1 class="title">where i've been</h1>
-  <p class="lede" id="lede">drag to spin it. click a country.</p>
+  <p class="lede" id="lede">drag to spin it, pinch or ctrl-scroll to zoom, click a country.</p>
 
   <div class="stage" id="stage">
 
@@ -321,6 +355,12 @@
              is the real navigable equivalent. -->
         <canvas id="globe" role="img"
                 aria-label="a globe of the countries matthew has visited"></canvas>
+        <!-- The keyboard and discoverability route to zoom; wheel-with-ctrl
+             and two-finger pinch do the same thing. -->
+        <div class="zoom">
+          <button class="zoombtn" id="zoom-in" type="button" aria-label="zoom in">+</button>
+          <button class="zoombtn" id="zoom-out" type="button" aria-label="zoom out" disabled>&minus;</button>
+        </div>
       </div>
       <p class="orb-label"><span id="orb-name"></span><br>
         <button class="close" id="close" type="button">back to the globe</button>
@@ -662,6 +702,9 @@
   var FRICTION  = 0.93;   // how quickly a flick dies away
   var DRAG_K    = 0.32;   // degrees turned per pixel dragged
   var TILT_LIM  = 78;     // don't let the pole come all the way over
+  var ZOOM_MAX  = 8;      // 1 degree is ~35px here; the data quantises at 0.01
+  var ZOOM_STEP = 1.5;    // per press of the +/- buttons
+  var WHEEL_K   = 0.0022; // wheel delta -> zoom exponent; pinch arrives as wheel
   var FLY_MS    = 750;    // rotating a clicked country into view
   var MORPH_MS  = 420;    // globe dissolving into the country outline
   var TURN_MS   = 650;    // must match .card's transition duration
@@ -680,6 +723,8 @@
   var closeEl = document.getElementById("close");
   var rollEl  = document.getElementById("roll-list");
   var ledeEl  = document.getElementById("lede");
+  var zoomInEl  = document.getElementById("zoom-in");
+  var zoomOutEl = document.getElementById("zoom-out");
   if (!canvas || !canvas.getContext) return;
   var ctx = canvas.getContext("2d");
   if (!ctx) return;
@@ -749,14 +794,18 @@
 
   ledeEl.textContent = visitedList.length +
     (visitedList.length === 1 ? " country. " : " countries. ") +
-    "drag to spin it, click a country.";
+    "drag to spin it, pinch or ctrl-scroll to zoom, click a country.";
 
   // ---- view state -------------------------------------------------------
   var rotLon = START.lon, rotLat = START.lat;
   var vel = 0;                 // leftover spin from a flick, deg/sec
   var selected = null;
   var morph = 0;               // 0 = globe, 1 = country outline
-  var W = 0, H = 0, cx = 0, cy = 0, R = 0;
+  // R is the one radius everything reads — projection, picking, pins, rim —
+  // so zoom is a multiplier folded into it. baseR is what the box allows;
+  // R = baseR * zoom always, and picking cannot drift from the picture
+  // because there is no second variable for it to drift against.
+  var W = 0, H = 0, cx = 0, cy = 0, R = 0, baseR = 0, zoom = 1;
   var raf = 0, last = 0;
   var fly = null;              // an in-progress rotate-to-country
 
@@ -769,7 +818,8 @@
     canvas.height = Math.round(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     cx = W / 2; cy = H / 2;
-    R = Math.min(W, H) / 2 - 6;
+    baseR = Math.min(W, H) / 2 - 6;
+    R = baseR * zoom;
   }
 
   // ---- projection -------------------------------------------------------
@@ -1057,13 +1107,19 @@
       var e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
       rotLon = fly.lon0 + fly.dLon * e;
       rotLat = fly.lat0 + fly.dLat * e;
+      // Fly home in zoom too. The outline dissolve and the rim's continuity
+      // are designed around the base radius, so the flight lands at 1x.
+      zoom = fly.z0 + (1 - fly.z0) * e;
+      R = baseR * zoom;
       if (t >= 1) fly = null;
-    } else if (!dragging && !selected) {
+    } else if (!dragging && !pinching && !selected) {
       if (Math.abs(vel) > 0.5) {
         rotLon += vel * dt;
         vel *= Math.pow(FRICTION, dt * 60);
       } else if (!reduce.matches) {
-        rotLon += SPIN * dt;
+        // Angular speed over zoom, so the apparent surface speed stays put —
+        // at 8x an unscaled idle spin races past like scenery from a train.
+        rotLon += (SPIN / zoom) * dt;
       }
     }
 
@@ -1097,6 +1153,39 @@
     while (lon > 180) lon -= 360;
     while (lon < -180) lon += 360;
     return [lon, lat];
+  }
+
+  // ---- zoom -------------------------------------------------------------
+  // Anchored to the pointer: invert the same screen point before and after
+  // the radius change, and rotate by the difference, so the place under your
+  // cursor stays under your cursor. Off the sphere, locate() is null and the
+  // zoom is centred — which is also what the buttons do.
+  function setZoom(z, ax, ay) {
+    if (selected) return;         // the outline view is not a zoomable surface
+    z = Math.max(1, Math.min(ZOOM_MAX, z));
+    if (z === zoom) return;
+    var before = (ax !== undefined) ? locate(ax, ay) : null;
+    zoom = z;
+    R = baseR * zoom;
+    if (before) {
+      var after = locate(ax, ay);
+      if (after) {
+        rotLon += before[0] - after[0];
+        rotLat = clampLat(rotLat + (before[1] - after[1]));
+        if (rotLon > 180) rotLon -= 360;
+        if (rotLon < -180) rotLon += 360;
+        // Re-derive the view matrices now rather than at the next frame, so a
+        // second wheel tick in the same frame anchors against fresh numbers.
+        setView();
+      }
+    }
+    syncZoomButtons();
+  }
+
+  function syncZoomButtons() {
+    if (!zoomInEl) return;
+    zoomInEl.disabled = !!selected || zoom >= ZOOM_MAX;
+    zoomOutEl.disabled = !!selected || zoom <= 1;
   }
 
   function inRing(ring, lon, lat) {
@@ -1178,14 +1267,17 @@
 
     if (reduce.matches) {
       rotLon = country.lon; rotLat = clampLat(country.lat); morph = outline ? 1 : 0;
+      zoom = 1; R = baseR;
     } else {
       fly = {
         t0: performance.now(),
         lon0: rotLon, lat0: rotLat,
         dLon: shortest(rotLon, country.lon),
-        dLat: clampLat(country.lat) - rotLat
+        dLat: clampLat(country.lat) - rotLat,
+        z0: zoom
       };
     }
+    syncZoomButtons();
 
     var entry = VISITED[country.name];
     var photos = (entry && entry.photos) || [];
@@ -1223,6 +1315,7 @@
     fly = null;
     stage.classList.remove("open");
     canvas.setAttribute("aria-label", "a globe of the countries matthew has visited");
+    syncZoomButtons();
     cancelTurn();
     album.innerHTML = "";
     cards = [];
@@ -1371,22 +1464,69 @@
   // ---- input ------------------------------------------------------------
   var dragging = false, moved = 0, lastX = 0, lastY = 0, lastT = 0;
 
+  // Active pointers, for telling one finger (drag) from two (pinch).
+  var pts = {}, pinching = false, pinchDist = 0;
+  function ptIds() { return Object.keys(pts); }
+
   orb.addEventListener("pointerdown", function (e) {
+    // Anything starting on the zoom buttons belongs to the buttons. Letting it
+    // fall through would treat the tap as a click on the globe underneath —
+    // the same overlay trap the close button had.
+    if (e.target.closest && e.target.closest(".zoom")) return;
+    pts[e.pointerId] = { x: e.clientX, y: e.clientY };
+    // A touch can lift between the event firing and this call, at which point
+    // capturing its id throws NotFoundError. Losing capture degrades a drag
+    // at the orb's edge; throwing kills the whole gesture handler.
+    try { orb.setPointerCapture(e.pointerId); } catch (err) {}
+
+    if (ptIds().length === 2) {
+      // Second finger down: this is a pinch now, not a drag.
+      pinching = true;
+      dragging = false;
+      moved = 999;                       // a pinch is never a click
+      var ids = ptIds();
+      pinchDist = Math.hypot(pts[ids[0]].x - pts[ids[1]].x,
+                             pts[ids[0]].y - pts[ids[1]].y);
+      orb.classList.remove("dragging");
+      return;
+    }
+
     dragging = true; moved = 0;
     lastX = e.clientX; lastY = e.clientY; lastT = e.timeStamp;
     vel = 0;
     orb.classList.add("dragging");
-    orb.setPointerCapture(e.pointerId);
   });
 
   orb.addEventListener("pointermove", function (e) {
+    if (pts[e.pointerId]) {
+      pts[e.pointerId].x = e.clientX;
+      pts[e.pointerId].y = e.clientY;
+    }
+
+    if (pinching) {
+      var ids = ptIds();
+      if (ids.length < 2) return;
+      var a = pts[ids[0]], b = pts[ids[1]];
+      var d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (d > 0 && pinchDist > 0) {
+        var rect = orb.getBoundingClientRect();
+        setZoom(zoom * d / pinchDist,
+                (a.x + b.x) / 2 - rect.left,
+                (a.y + b.y) / 2 - rect.top);
+      }
+      pinchDist = d;
+      return;
+    }
+
     if (!dragging) return;
     var dx = e.clientX - lastX, dy = e.clientY - lastY;
     moved += Math.abs(dx) + Math.abs(dy);
-    rotLon -= dx * DRAG_K;
-    rotLat = clampLat(rotLat + dy * DRAG_K);
+    // Divided by zoom so a zoomed-in drag feels like holding the surface —
+    // the same finger travel moves the same ground, not the same degrees.
+    rotLon -= dx * DRAG_K / zoom;
+    rotLat = clampLat(rotLat + dy * DRAG_K / zoom);
     var dt = e.timeStamp - lastT;
-    if (dt > 0) vel = -dx * DRAG_K / (dt / 1000);
+    if (dt > 0) vel = -dx * DRAG_K / zoom / (dt / 1000);
     lastX = e.clientX; lastY = e.clientY; lastT = e.timeStamp;
     // Spinning away closes the panel — but only once it is actually a spin.
     // Firing on the first pixel meant the jitter in a finger press was enough
@@ -1395,13 +1535,31 @@
   });
 
   function endDrag(e) {
-    if (!dragging) return;
-    dragging = false;
-    orb.classList.remove("dragging");
+    if (e.pointerId !== undefined) delete pts[e.pointerId];
     if (e.pointerId !== undefined && orb.hasPointerCapture &&
         orb.hasPointerCapture(e.pointerId)) {
       orb.releasePointerCapture(e.pointerId);
     }
+
+    if (pinching) {
+      if (ptIds().length < 2) {
+        pinching = false;
+        // One finger stays down: resume dragging from where it is, so the
+        // globe doesn't jump by the distance to a stale anchor.
+        var ids = ptIds();
+        if (ids.length === 1) {
+          dragging = true;
+          moved = 999;                   // still not a click
+          lastX = pts[ids[0]].x; lastY = pts[ids[0]].y; lastT = e.timeStamp;
+          orb.classList.add("dragging");
+        }
+      }
+      return;
+    }
+
+    if (!dragging) return;
+    dragging = false;
+    orb.classList.remove("dragging");
     // A press that didn't travel is a click, not a throw.
     if (moved < 6) {
       // Once the dissolve has gone far enough, what is on screen is the
@@ -1417,10 +1575,29 @@
     }
   }
   orb.addEventListener("pointerup", endDrag);
-  orb.addEventListener("pointercancel", function () {
+  orb.addEventListener("pointercancel", function (e) {
+    if (e.pointerId !== undefined) delete pts[e.pointerId];
+    if (ptIds().length < 2) pinching = false;
     dragging = false;
     orb.classList.remove("dragging");
   });
+
+  // Ctrl+wheel — which is also how the browser delivers a trackpad pinch.
+  // A bare wheel is left alone on purpose: this page scrolls, and a globe
+  // that eats plain scrolling is the same trap as the touch-action:none bug,
+  // just for mice. Ctrl+wheel is the map-embed convention for exactly that
+  // reason.
+  orb.addEventListener("wheel", function (e) {
+    if (selected) return;                    // outline view: normal page behaviour
+    if (!e.ctrlKey && !e.metaKey) return;    // plain scroll belongs to the page
+    e.preventDefault();
+    var rect = orb.getBoundingClientRect();
+    setZoom(zoom * Math.exp(-e.deltaY * WHEEL_K),
+            e.clientX - rect.left, e.clientY - rect.top);
+  }, { passive: false });
+
+  zoomInEl.addEventListener("click", function () { setZoom(zoom * ZOOM_STEP); });
+  zoomOutEl.addEventListener("click", function () { setZoom(zoom / ZOOM_STEP); });
 
   closeEl.addEventListener("click", function () {
     deselect();
@@ -1483,6 +1660,7 @@
 
   measure();
   setView();
+  syncZoomButtons();
   render();
   start();
 })();
