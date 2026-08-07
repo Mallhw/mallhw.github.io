@@ -120,6 +120,32 @@ def flatten(ring):
     return out
 
 
+def point_in_ring(flat, x, y):
+    """Ray cast against a flat [lon, lat, lon, lat, ...] ring."""
+    inside = False
+    n = len(flat) // 2
+    j = n - 1
+    for i in range(n):
+        xi, yi = flat[i * 2], flat[i * 2 + 1]
+        xj, yj = flat[j * 2], flat[j * 2 + 1]
+        if (yi > y) != (yj > y):
+            if x < (xj - xi) * (y - yi) / ((yj - yi) or 1e-12) + xi:
+                inside = not inside
+        j = i
+    return inside
+
+
+def covered_by(polys_list, x, y):
+    """Is (x, y) inside any of these polygons, honouring holes?"""
+    for polys in polys_list:
+        for rings in polys:
+            if not point_in_ring(rings[0], x, y):
+                continue
+            if not any(point_in_ring(h, x, y) for h in rings[1:]):
+                return True
+    return False
+
+
 def load(name, override):
     """Read one source, from a given path or over the network.
 
@@ -147,34 +173,6 @@ def load(name, override):
         )
 
 
-def name_of(feature):
-    props = feature["properties"]
-    return props.get("GEOUNIT") or props.get("ADMIN")
-
-
-def rings_of(geom):
-    if geom["type"] == "Polygon":
-        return [geom["coordinates"]]
-    if geom["type"] == "MultiPolygon":
-        return geom["coordinates"]
-    return []
-
-
-def point_in_ring(ring, lon, lat):
-    """Ray cast against a [[lon, lat], ...] ring."""
-    inside = False
-    n = len(ring)
-    j = n - 1
-    for i in range(n):
-        xi, yi = ring[i][0], ring[i][1]
-        xj, yj = ring[j][0], ring[j][1]
-        if (yi > lat) != (yj > lat):
-            if lon < (xj - xi) * (lat - yi) / (yj - yi) + xi:
-                inside = not inside
-        j = i
-    return inside
-
-
 def main() -> None:
     if not PAGE.exists():
         sys.exit(f"No globe.html at {PAGE}")
@@ -188,20 +186,27 @@ def main() -> None:
             "Refusing to guess where the geometry belongs — nothing was written."
         )
 
-    data = load(sys.argv)
+    # sys.argv[0] is this script. Two optional paths follow, base then fine.
+    args = sys.argv[1:]
+    base = load(BASE, args[0] if len(args) > 0 else None)
+    fine = load(FINE, args[1] if len(args) > 1 else None)
 
-    rows = []
-    for feature in data["features"]:
+    def to_row(feature):
+        """One GeoJSON feature -> one [name, iso, clon, clat, polys] row."""
         props = feature["properties"]
         name = props.get("GEOUNIT") or props.get("ADMIN")
         iso = props.get("ISO_A2") or ""
+        # Natural Earth writes "-99", not null, when a unit has no ISO code.
+        # Passing that through would put a fake country code in the data.
+        if iso == "-99":
+            iso = ""
         geom = feature["geometry"]
         if geom["type"] == "Polygon":
             raw = [geom["coordinates"]]
         elif geom["type"] == "MultiPolygon":
             raw = geom["coordinates"]
         else:
-            continue
+            return None
 
         polys = []
         for poly in raw:
@@ -211,19 +216,46 @@ def main() -> None:
             rings = [r for r in rings if len(r) >= 6]
             if rings:
                 polys.append(rings)
-        if not polys:
-            continue
+        if not polys or not name:
+            return None
 
         # Centre on the largest landmass rather than the average of everything,
         # so France centres on France and not halfway to French Guiana.
         biggest = max((r[0] for r in polys), key=lambda r: abs(ring_area(r)))
         clon, clat = ring_centroid(biggest)
+        return [name, iso, round(clon, PRECISION), round(clat, PRECISION), polys]
 
-        rows.append(
-            [name, iso, round(clon, PRECISION), round(clat, PRECISION), polys]
-        )
+    rows = [r for r in (to_row(f) for f in base["features"]) if r]
+    base_polys = [r[4] for r in rows]
+    have = {r[0] for r in rows}
 
+    # The splice. Geographic, not by name: a 50m unit earns its place only if
+    # its own centre falls outside every shape 110m already draws. That admits
+    # Aruba, which 110m thinks is open water, and rejects Wallonia, which sits
+    # inside a Belgium 110m already has — adding that would stack two countries
+    # on the same ground and make the click target a coin toss.
+    added = []
+    for feature in fine["features"]:
+        row = to_row(feature)
+        if not row or row[0] in have:
+            continue
+        if covered_by(base_polys, row[2], row[3]):
+            continue
+        added.append(row)
+        have.add(row[0])
+
+    rows.extend(added)
     rows.sort(key=lambda r: r[0])
+    print(f"  {len(rows) - len(added)} from 110m, {len(added)} spliced from 50m")
+
+    # A source that parsed but yielded nothing usable would otherwise write a
+    # valid, empty array straight over the real geometry — a clean-looking
+    # commit that silently empties the globe.
+    if len(rows) < 150:
+        sys.exit(
+            f"Only {len(rows)} countries survived processing, expected ~180.\n"
+            "That points at a bad download or a changed schema. Nothing written."
+        )
     body = ",\n".join(json.dumps(r, separators=(",", ":")) for r in rows)
     block = f"  var COUNTRIES = [\n{body}\n  ];"
 
