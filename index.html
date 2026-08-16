@@ -643,10 +643,14 @@
   // "WeightTraining" -> "weight training"
   var type = String(STRAVA.type).replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
 
+  // Duration in words, since the caption is a sentence now: "44 minutes",
+  // "1 hour", "1 hour 20 minutes". Units drop out when they're zero.
   var mins = Math.round(STRAVA.moving_s / 60);
-  var dur = mins >= 60
-    ? Math.floor(mins / 60) + " h " + String(mins % 60).padStart(2, "0")
-    : mins + " min";
+  var h = Math.floor(mins / 60), m = mins % 60;
+  var parts = [];
+  if (h) parts.push(h + (h === 1 ? " hour" : " hours"));
+  if (m || !h) parts.push(m + (m === 1 ? " minute" : " minutes"));
+  var dur = parts.join(" ");
 
   // Calendar days, not 24-hour blocks: a run at 11pm yesterday is "yesterday"
   // this morning, even though it was nine hours ago.
@@ -656,7 +660,8 @@
      new Date(start.getFullYear(), start.getMonth(), start.getDate())) / 864e5);
   var when = days <= 0 ? "today" : days === 1 ? "yesterday" : days + " days ago";
 
-  var text = type + " · " + dur + " · " + when;
+  // Lowercase "i" on purpose — the whole page speaks that way.
+  var text = when + ": i did " + type + " for " + dur;
   cap.textContent = "";
   if (PROFILE) {
     var a = document.createElement("a");
