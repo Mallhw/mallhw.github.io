@@ -152,6 +152,55 @@ There is no hover on a touch screen, so tapping a `<span>` trigger swaps the pho
 instead. Taps on real links still follow the link — otherwise the Academies-IT link would
 be dead on a phone.
 
+## The Strava caption
+
+The caption under the homepage's default photo shows the latest Strava activity —
+`run · 44 min · 3 days ago` — linked to the profile. Until the setup below is done (or
+whenever data is missing) it falls back to the caption written in the HTML.
+
+The page cannot call Strava itself: the API needs OAuth tokens that expire six-hourly,
+refreshing them needs the client secret, and a public page can hold neither. So a
+scheduled GitHub Action (`.github/workflows/strava.yml`) fetches the latest activity four
+times a day and rewrites `strava.js`, a generated same-origin file — the page still makes
+zero external requests, and "X days ago" is computed in the browser from the activity's
+start time so it stays current between refreshes. Only the activity **type**, duration and
+start are published — never the user-entered activity name, which routinely leaks routes.
+
+### One-time setup
+
+1. Create an API application at <https://www.strava.com/settings/api> — any category,
+   website `https://matthewli.org`, authorization callback domain `localhost`.
+2. Authorize it once (replace `CLIENT_ID`):
+
+   ```
+   https://www.strava.com/oauth/authorize?client_id=CLIENT_ID&response_type=code&redirect_uri=http://localhost&approval_prompt=force&scope=activity:read
+   ```
+
+   Approve, then copy `code=...` out of the localhost URL it redirects to.
+3. Exchange the code for tokens and note the `refresh_token` in the response:
+
+   ```sh
+   curl -X POST https://www.strava.com/oauth/token \
+     -d client_id=CLIENT_ID -d client_secret=CLIENT_SECRET \
+     -d code=CODE -d grant_type=authorization_code
+   ```
+
+4. Set the three repo secrets (each prompts for the value; nothing lands in shell history):
+
+   ```sh
+   gh secret set STRAVA_CLIENT_ID
+   gh secret set STRAVA_CLIENT_SECRET
+   gh secret set STRAVA_REFRESH_TOKEN
+   ```
+
+5. Put your profile URL into the `PROFILE` constant in `index.html`'s STRAVA CAPTION
+   script, then run the workflow once from the Actions tab (or wait for the cron).
+
+Caveats: the scope `activity:read` excludes activities marked private, on purpose. Strava
+can in principle rotate the refresh token; in practice it is stable — if the workflow ever
+starts failing with auth errors, redo steps 2–4. GitHub pauses cron workflows after ~60
+days without repo activity; any commit revives them.
+
 ## The globe
 
 `globe.html` is a second page, linked from **travelling** in the list on the homepage. It
