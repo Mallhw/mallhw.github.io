@@ -617,6 +617,58 @@
   })();
 </script>
 
+<!-- ===== STRAVA CAPTION ===================================================
+     The caption under the default photo shows the latest Strava activity:
+     "run · 44 min · 3 days ago", linked to the profile. strava.js is a
+     generated same-origin file (see build/regen-strava.py) — the page still
+     makes zero external requests. If the file is missing, null, or malformed,
+     this script does nothing and the caption written in the HTML above stands.
+     "X days ago" is computed here, in the viewer's timezone, from the
+     activity's start time — so it stays correct between data refreshes.
+     This must run BEFORE the photo-swap script below, which captures whatever
+     the caption holds at load as the default it restores to.
+     ======================================================================== -->
+<script src="strava.js"></script>
+<script>
+(function () {
+  // Set this to your Strava profile once; it is the caption's link target.
+  var PROFILE = "";
+
+  var cap = document.getElementById("photo-caption");
+  if (!cap || typeof STRAVA === "undefined" || !STRAVA) return;
+  if (!STRAVA.type || !STRAVA.start || !isFinite(STRAVA.moving_s)) return;
+  var start = new Date(STRAVA.start);
+  if (isNaN(start.getTime())) return;
+
+  // "WeightTraining" -> "weight training"
+  var type = String(STRAVA.type).replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
+
+  var mins = Math.round(STRAVA.moving_s / 60);
+  var dur = mins >= 60
+    ? Math.floor(mins / 60) + " h " + String(mins % 60).padStart(2, "0")
+    : mins + " min";
+
+  // Calendar days, not 24-hour blocks: a run at 11pm yesterday is "yesterday"
+  // this morning, even though it was nine hours ago.
+  var now = new Date();
+  var days = Math.round(
+    (new Date(now.getFullYear(), now.getMonth(), now.getDate()) -
+     new Date(start.getFullYear(), start.getMonth(), start.getDate())) / 864e5);
+  var when = days <= 0 ? "today" : days === 1 ? "yesterday" : days + " days ago";
+
+  var text = type + " · " + dur + " · " + when;
+  cap.textContent = "";
+  if (PROFILE) {
+    var a = document.createElement("a");
+    a.href = PROFILE;
+    a.textContent = text;
+    cap.appendChild(a);
+  } else {
+    cap.textContent = text;
+  }
+})();
+</script>
+
 <!-- ===== PHOTO SWAP =======================================================
      Hovering a word carrying data-hover-img swaps the photo panel to that
      image, and the photo then stays — it does not snap back when the pointer
@@ -631,7 +683,11 @@
 
   var defaultSrc = img.getAttribute("src");
   var defaultAlt = img.getAttribute("alt");
-  var defaultCap = cap.textContent;
+  // innerHTML, not textContent: the Strava script above may have made the
+  // default caption a link, and a textContent round-trip would strip it the
+  // first time a hover swapped away and back. Trigger captions still go
+  // through textContent — they come from attributes and must stay text.
+  var defaultCap = cap.innerHTML;
   var shown = defaultSrc;
   var timer = 0;
 
@@ -648,19 +704,23 @@
   var still = window.matchMedia
     && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  function show(src, caption, alt) {
+  function show(src, caption, alt, asHTML) {
     if (src === shown) return;   // re-entering the same word must not re-flash
     shown = src;
     clearTimeout(timer);
+    function setCap() {
+      if (asHTML) cap.innerHTML = caption;
+      else cap.textContent = caption;
+    }
     if (still) {
-      img.src = src; img.alt = alt; cap.textContent = caption;
+      img.src = src; img.alt = alt; setCap();
       return;
     }
     img.style.opacity = 0;
     timer = setTimeout(function () {
       img.src = src;
       img.alt = alt;
-      cap.textContent = caption;
+      setCap();
       img.style.opacity = 1;
     }, 150);
   }
@@ -689,11 +749,11 @@
   var greeting = document.getElementById("greeting");
   if (greeting) {
     greeting.addEventListener("mouseenter", function () {
-      show(defaultSrc, defaultCap, defaultAlt);
+      show(defaultSrc, defaultCap, defaultAlt, true);
     });
     if (!canHover) {
       greeting.addEventListener("click", function () {
-        show(defaultSrc, defaultCap, defaultAlt);
+        show(defaultSrc, defaultCap, defaultAlt, true);
       });
     }
   }
