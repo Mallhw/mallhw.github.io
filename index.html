@@ -643,6 +643,35 @@
   // "WeightTraining" -> "weight training"
   var type = String(STRAVA.type).replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
 
+  // The right verb for the sport: "played pickleball", "ran", "biked",
+  // "did weight training". Keyed by Strava's sport_type. Anything not listed
+  // falls back to "did <type>", so a sport Strava adds next year still reads
+  // as a sentence rather than breaking.
+  var VERBS = {
+    Run: "ran", VirtualRun: "ran", TrailRun: "went trail running",
+    Walk: "walked", Hike: "hiked",
+    Ride: "biked", VirtualRide: "biked", GravelRide: "biked",
+    EBikeRide: "biked", MountainBikeRide: "went mountain biking",
+    EMountainBikeRide: "went mountain biking", Handcycle: "handcycled",
+    Swim: "swam", Rowing: "rowed", VirtualRow: "rowed",
+    Kayaking: "kayaked", Canoeing: "canoed", StandUpPaddling: "paddleboarded",
+    Sail: "sailed", Surfing: "surfed", Kitesurf: "kitesurfed",
+    Windsurf: "windsurfed",
+    Pickleball: "played pickleball", Tennis: "played tennis",
+    TableTennis: "played table tennis", Badminton: "played badminton",
+    Squash: "played squash", Racquetball: "played racquetball",
+    Soccer: "played soccer", Golf: "played golf",
+    Workout: "worked out", WeightTraining: "did weight training",
+    Crossfit: "did crossfit", HighIntensityIntervalTraining: "did a hiit workout",
+    Yoga: "did yoga", Pilates: "did pilates",
+    Elliptical: "did the elliptical", StairStepper: "did the stair stepper",
+    RockClimbing: "climbed", Skateboard: "skateboarded",
+    InlineSkate: "skated", IceSkate: "skated",
+    AlpineSki: "skied", BackcountrySki: "skied", NordicSki: "skied",
+    RollerSki: "skied", Snowboard: "snowboarded", Snowshoe: "snowshoed"
+  };
+  var didWhat = VERBS[STRAVA.type] || ("did " + type);
+
   // Duration in words, since the caption is a sentence now: "44 minutes",
   // "1 hour", "1 hour 20 minutes". Units drop out when they're zero.
   var mins = Math.round(STRAVA.moving_s / 60);
@@ -661,7 +690,7 @@
   var when = days <= 0 ? "today" : days === 1 ? "yesterday" : days + " days ago";
 
   // Lowercase "i" on purpose — the whole page speaks that way.
-  var text = when + ": i did " + type + " for " + dur;
+  var text = when + ": i " + didWhat + " for " + dur;
   cap.textContent = "";
   if (PROFILE) {
     var a = document.createElement("a");
