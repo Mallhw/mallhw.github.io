@@ -155,23 +155,25 @@ be dead on a phone.
 ## The writing section
 
 `writing.html` is an index of topics, one page per topic — the shape of
-patrickcollison.com. It ships empty on purpose: the machinery exists, the words don't yet.
-It's linked from **writing** in the homepage list, next to travelling → the globe.
+patrickcollison.com, and dressed like it too: **the writing section is white, Helvetica,
+blue links**, deliberately unlike the tan-and-Karla rest of the site. The writing room
+(`write.html`) wears the same clothes, so typing there is seeing the final page. These
+pages embed no webfont at all, which is why `regen-fonts.py` doesn't list them. Linked
+from **writing** in the homepage list.
 
 ### Adding a topic
 
-1. Copy `build/writing-topic-template.html` to `writing/<slug>.html` and write in it —
-   plain HTML, the template says what's available.
-2. Run `python3 build/regen-fonts.py` once. Topic pages are picked up by glob, so the
-   typeface embeds without touching the script.
-3. Add the topic's row to the commented list in `writing.html`:
+1. Write it in `write.html` (autosave, proofread-on-export) and **export** — or copy
+   `build/writing-topic-template.html` to `writing/<slug>.html` and write by hand.
+2. Drop the file in `writing/`.
+3. Add the topic's row to the list in `writing.html`:
 
    ```html
    <li><a href="writing/<slug>.html">topic</a>
-       <span class="gloss">&mdash; one line on what it's about</span></li>
+       <span class="gloss">&mdash; optional one-line gloss</span></li>
    ```
 
-   And delete the "nothing here yet" paragraph once the first row exists.
+No font step: writing pages use system Helvetica.
 
 The old `blog/` and `blogs/` folders are unrelated to this and stay unpublished (they're
 excluded in `_config.yml`); this section starts from scratch.
