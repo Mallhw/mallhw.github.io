@@ -152,6 +152,30 @@ There is no hover on a touch screen, so tapping a `<span>` trigger swaps the pho
 instead. Taps on real links still follow the link — otherwise the Academies-IT link would
 be dead on a phone.
 
+## The writing section
+
+`writing.html` is an index of topics, one page per topic — the shape of
+patrickcollison.com. It ships empty on purpose: the machinery exists, the words don't yet.
+It's linked from **writing** in the homepage list, next to travelling → the globe.
+
+### Adding a topic
+
+1. Copy `build/writing-topic-template.html` to `writing/<slug>.html` and write in it —
+   plain HTML, the template says what's available.
+2. Run `python3 build/regen-fonts.py` once. Topic pages are picked up by glob, so the
+   typeface embeds without touching the script.
+3. Add the topic's row to the commented list in `writing.html`:
+
+   ```html
+   <li><a href="writing/<slug>.html">topic</a>
+       <span class="gloss">&mdash; one line on what it's about</span></li>
+   ```
+
+   And delete the "nothing here yet" paragraph once the first row exists.
+
+The old `blog/` and `blogs/` folders are unrelated to this and stay unpublished (they're
+excluded in `_config.yml`); this section starts from scratch.
+
 ## The Strava caption
 
 The caption under the homepage's default photo shows the latest Strava activity —
