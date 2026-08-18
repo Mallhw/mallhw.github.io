@@ -22,7 +22,11 @@ import sys
 HERE = pathlib.Path(__file__).resolve().parent
 # Both pages embed the same face. Listing them here rather than copying the
 # base64 by hand is what stops the two drifting apart.
-PAGES = [HERE.parent / "index.html", HERE.parent / "globe.html"]
+PAGES = [HERE.parent / "index.html", HERE.parent / "globe.html",
+         HERE.parent / "writing.html"]
+# Every writing topic page embeds the face too. Globbed rather than listed so
+# adding an essay never means coming back here.
+PAGES += sorted((HERE.parent / "writing").glob("*.html"))
 FAMILY = "Karla"
 # Karla ships as a single variable file covering the whole 300-600 range, which
 # is smaller than the four static weights it replaced.
