@@ -96,6 +96,47 @@
     font-size: 10px;
     color: #ccc;
   }
+
+  /* ---- the proofread report ---- */
+  .issues {
+    margin-top: 40px;
+    border-top: 1px solid #eee;
+    padding-top: 16px;
+    font-size: 12px;
+  }
+  .issues .issues-head {
+    font-family: "Myriad Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #aaa;
+    margin-bottom: 10px;
+  }
+  .issue { margin-bottom: 10px; }
+  .issue .find {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: #0864c7;
+    cursor: pointer;
+  }
+  .issue .find:hover { text-decoration: underline; }
+  .issue .msg { color: #555; }
+  .chip {
+    display: inline-block;
+    background: none;
+    border: 1px solid #0864c7;
+    border-radius: 3px;
+    color: #0864c7;
+    font: inherit;
+    font-size: 11px;
+    line-height: 1.5;
+    padding: 0 6px;
+    margin-left: 6px;
+    cursor: pointer;
+  }
+  .chip:hover { background: #0864c7; color: #fff; }
 </style>
 </head>
 <body>
@@ -103,6 +144,7 @@
 <div class="menu">
   <select id="drafts" aria-label="drafts"></select>
   <button id="new" type="button">new draft</button>
+  <button id="proof" type="button">proofread</button>
   <button id="export" type="button">export page</button>
   <button id="copy" type="button">copy html</button>
   <button id="del" type="button">delete draft</button>
@@ -115,10 +157,14 @@
   <p class="byline" id="byline"></p>
   <div id="body" contenteditable="true" spellcheck="true"
        data-placeholder="start typing. cmd+b bold, cmd+i italic, cmd+k link."></div>
+  <div class="issues" id="issues" hidden></div>
+
   <p class="hint">
-    autosaves to this browser as you type. export writes writing/&lt;slug&gt;.html
-    for the site &mdash; then run <code>python3 build/regen-fonts.py</code> and add
-    the row to writing.html.
+    autosaves to this browser as you type. proofread (also run automatically on
+    export) sends the essay text to languagetool.org &mdash; the one thing on this
+    page that touches the network, and only when you ask. export writes
+    writing/&lt;slug&gt;.html for the site &mdash; then run
+    <code>python3 build/regen-fonts.py</code> and add the row to writing.html.
   </p>
 </div>
 
@@ -302,8 +348,123 @@
       .replace("  <p>first paragraph.</p>", body);
   }
 
-  function exportPage() {
-    save();
+  // ---- proofreading ----------------------------------------------------
+  // LanguageTool's public API: real grammar and spelling, one POST, no key.
+  // The only network request this page ever makes, and only when asked —
+  // proofread sends the essay text to languagetool.org, which is disclosed in
+  // the hint below the editor. Offline, the browser's own squiggles remain.
+  var issuesEl = document.getElementById("issues");
+  var proofClean = false;      // goes false on any edit; true after a clean check
+  var exportAnyway = false;    // one-shot: a second export click skips the gate
+
+  function proofread(done) {
+    var text = bodyEl.innerText;
+    if (!text.trim()) {
+      renderIssues([], text);
+      if (done) done(0);
+      return;
+    }
+    statusEl.textContent = "checking…";
+    var params = new URLSearchParams();
+    params.set("text", text);
+    params.set("language", "en-US");
+    fetch("https://api.languagetool.org/v2/check", { method: "POST", body: params })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var matches = data.matches || [];
+        renderIssues(matches, text);
+        if (done) done(matches.length);
+      })
+      .catch(function () {
+        statusEl.textContent =
+          "proofread needs the internet — the browser's spellcheck squiggles still work";
+        if (done) done(-1);
+      });
+  }
+
+  function renderIssues(matches, text) {
+    issuesEl.innerHTML = "";
+    proofClean = matches.length === 0;
+    issuesEl.hidden = proofClean;
+    if (proofClean) {
+      statusEl.textContent = "proofread: no issues found";
+      return;
+    }
+    statusEl.textContent = "proofread: " + matches.length +
+      (matches.length === 1 ? " issue" : " issues");
+
+    var head = document.createElement("div");
+    head.className = "issues-head";
+    head.textContent = matches.length + " from languagetool.org — click a phrase to jump to it";
+    issuesEl.appendChild(head);
+
+    matches.forEach(function (m) {
+      var snippet = text.substr(m.offset, m.length);
+      if (!snippet) return;
+      // Which occurrence of this snippet is it? window.find walks the page in
+      // order, so the fix must land on the right duplicate of a common word.
+      var occurrence = 0, at = -1;
+      while ((at = text.indexOf(snippet, at + 1)) !== -1 && at < m.offset) occurrence++;
+
+      var row = document.createElement("div");
+      row.className = "issue";
+
+      var find = document.createElement("button");
+      find.type = "button";
+      find.className = "find";
+      find.textContent = "“" + (snippet.length > 40 ? snippet.slice(0, 40) + "…" : snippet) + "”";
+      find.addEventListener("click", function () { locate(snippet, occurrence); });
+      row.appendChild(find);
+
+      var msg = document.createElement("span");
+      msg.className = "msg";
+      msg.textContent = " — " + m.message;
+      row.appendChild(msg);
+
+      (m.replacements || []).slice(0, 3).forEach(function (rep) {
+        var chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "chip";
+        chip.textContent = rep.value;
+        chip.addEventListener("click", function () {
+          if (locate(snippet, occurrence)) {
+            document.execCommand("insertText", false, rep.value);
+            save();
+            // offsets have all shifted; check again rather than trusting them
+            setTimeout(function () { proofread(); }, 250);
+          }
+        });
+        row.appendChild(chip);
+      });
+
+      issuesEl.appendChild(row);
+    });
+  }
+
+  // Select the nth occurrence of a snippet inside the editor. window.find
+  // walks the whole document, so hits outside the essay (the issue list shows
+  // the same snippet, for one) are skipped without being counted.
+  function locate(snippet, occurrence) {
+    bodyEl.focus();
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    var r = document.createRange();
+    r.setStart(bodyEl, 0);
+    r.collapse(true);
+    sel.addRange(r);
+    var seen = -1;
+    for (var guard = 0; guard < 80; guard++) {
+      if (!window.find(snippet, false, false, false)) return false;
+      var anchor = sel.anchorNode;
+      if (anchor && bodyEl.contains(anchor)) {
+        seen++;
+        if (seen === occurrence) return true;
+      }
+    }
+    return false;
+  }
+
+  function doExport() {
     var html = buildPage();
     var slug = slugOf(titleEl.textContent);
     var blob = new Blob([html], { type: "text/html" });
@@ -313,7 +474,30 @@
     document.body.appendChild(a);
     a.click();
     a.remove();
+    exportAnyway = false;
+    if (window.__writingroom) window.__writingroom.exports++;
     statusEl.textContent = "exported " + slug + ".html — move it into writing/";
+  }
+
+  // The end-of-session check: exporting proofreads first. Clean → export.
+  // Issues → they're listed, and a second click exports anyway. Offline →
+  // export with a note, because a grammar check should never hold words
+  // hostage to the network.
+  function exportPage() {
+    save();
+    if (proofClean || exportAnyway) { doExport(); return; }
+    proofread(function (n) {
+      if (n === 0) {
+        doExport();
+      } else if (n < 0) {
+        statusEl.textContent += " — exporting without it";
+        doExport();
+      } else {
+        exportAnyway = true;
+        statusEl.textContent = "proofread: " + n +
+          (n === 1 ? " issue" : " issues") + " — fix below, or export again to export anyway";
+      }
+    });
   }
 
   function copyHtml() {
@@ -331,6 +515,9 @@
   // ---- wiring ----------------------------------------------------------
   titleEl.addEventListener("input", queueSave);
   bodyEl.addEventListener("input", queueSave);
+  // Any edit invalidates the last check and the export-anyway grace.
+  bodyEl.addEventListener("input", function () { proofClean = false; exportAnyway = false; });
+  document.getElementById("proof").addEventListener("click", function () { proofread(); });
   // A title is one line; enter should take you to the words.
   titleEl.addEventListener("keydown", function (e) {
     if (e.key === "Enter") { e.preventDefault(); bodyEl.focus(); }
@@ -359,7 +546,8 @@
   });
 
   // expose for the test harness only
-  window.__writingroom = { serialize: serialize, buildPage: buildPage, slugOf: slugOf };
+  window.__writingroom = { serialize: serialize, buildPage: buildPage,
+                           slugOf: slugOf, proofread: proofread, exports: 0 };
 
   var ix = loadIndex();
   if (ix.length) openDraft(ix[0].id); else newDraft();
