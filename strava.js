@@ -2,4 +2,4 @@
    Latest Strava activity: type + duration + start, nothing else.
    Rewritten on a schedule by .github/workflows/strava.yml.
    ================================================================ */
-var STRAVA = {"type": "Workout", "moving_s": 3380, "start": "2026-09-04T00:17:51Z"};
+var STRAVA = {"type": "WeightTraining", "moving_s": 4917, "start": "2026-09-04T17:16:15Z"};
