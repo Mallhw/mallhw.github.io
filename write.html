@@ -532,7 +532,14 @@
   document.getElementById("export").addEventListener("click", exportPage);
   document.getElementById("copy").addEventListener("click", copyHtml);
   document.getElementById("del").addEventListener("click", deleteDraft);
-  draftsEl.addEventListener("change", function () { save(); openDraft(draftsEl.value); });
+  // Read the choice before saving: save() rebuilds the menu with the draft
+  // that is still open re-selected, so reading draftsEl.value afterwards
+  // would just reopen the one you were already on.
+  draftsEl.addEventListener("change", function () {
+    var next = draftsEl.value;
+    save();
+    openDraft(next);
+  });
 
   // Paste as plain text: pasted rich text drags foreign fonts and colours
   // into the page, and the export would strip them anyway.
